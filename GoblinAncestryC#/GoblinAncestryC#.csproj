@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <RootNamespace>GoblinAncestryC_</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Common">
+      <HintPath>..\..\..\SteamLibrary\steamapps\common\Dawnsbury Days\Data\Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Dawnsbury Days">
+      <HintPath>..\..\..\SteamLibrary\steamapps\common\Dawnsbury Days\Data\Dawnsbury Days.dll</HintPath>
+    </Reference>
+    <Reference Include="MonoGame.Framework">
+      <HintPath>..\..\..\SteamLibrary\steamapps\common\Dawnsbury Days\Data\MonoGame.Framework.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
