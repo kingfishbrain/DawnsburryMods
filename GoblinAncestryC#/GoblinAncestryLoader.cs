@@ -23,6 +23,7 @@ using global::Dawnsbury.Core.CharacterBuilder.Feats;
 using global::Dawnsbury.Core.Creatures;
 using global::Dawnsbury.Core.Mechanics.Enumerations;
 using global::Dawnsbury.Modding;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace Dawnsbury.Mods.Ancestries.Goblin;
 
@@ -34,7 +35,7 @@ public static class GoblinAncestryLoader
     public static void LoadMod()
     {
         GoblinTrait = ModManager.RegisterTrait(
-            "Kobold",
+            "Goblin",
             new TraitProperties("Goblin", true)
             {
                 IsAncestryTrait = true
@@ -53,7 +54,7 @@ public static class GoblinAncestryLoader
                     new EnforcedAbilityBoost(Ability.Charisma),
                     new FreeAbilityBoost()
                 },
-                CreateKoboldHeritages().ToList())
+                CreateGoblinHeritages().ToList())
             .WithAbilityFlaw(Ability.Wisdom)
             .WithCustomName("Goblin")
         );
@@ -69,42 +70,7 @@ public static class GoblinAncestryLoader
 
     private static IEnumerable<Feat> CreateGoblinAncestryFeats()
     {
-        yield return new GoblinAncestryFeat(
-                "Draconic Sycophant",
-                "You have an affect that dragonkind find unusually pleasing—and when that fails, you know when to duck.",
-                "You gain a +2 circumstance bonus to saving throws against dragons.")
-            .WithOnCreature(creature =>
-            {
-                creature.AddQEffect(new QEffect("Draconic Sycophant", "You have +2 to saves against dragons.")
-                {
-                    BonusToDefenses = (qfSelf, incomingAttack, targetedDefense) =>
-                    {
-                        if (targetedDefense == Defense.Fortitude || targetedDefense == Defense.Reflex || targetedDefense == Defense.Will)
-                        {
-                            if (incomingAttack?.Owner.HasTrait(Trait.Dragon) ?? false)
-                            {
-                                return new Bonus(2, BonusType.Circumstance, "Draconic Sycophant");
-                            }
-                        }
 
-                        return null;
-                    }
-                });
-            });
-        yield return new KoboldAncestryFeat("Dragon's Presence",
-                "As a member of dragonkind, you project unflappable confidence.",
-                "When you attempt to Demoralize a foe of your level or lower, you gain a +1 circumstance bonus to the Intimidation check.")
-            .WithOnCreature(creature =>
-            {
-                creature.AddQEffect(new QEffect("Dragon's Presence", "You have a +1 circumstance bonus to Demoralize.")
-                {
-                    BonusToAttackRolls = (qfSelf, combatAction, defender) =>
-                    {
-                        if (combatAction.ActionId == ActionId.Demoralize) return new Bonus(1, BonusType.Circumstance, "Dragon's Presence");
-                        return null;
-                    }
-                });
-            });
         yield return new GoblinAncestryFeat("Goblin Weapon Familiarity",
                 "Others might look upon them with disdain, but you know that the weapons of your people are as effective as they are sharp. ",
                 "You gain access to all uncommon weapons with the goblin trait. You have familiarity with weapons with the goblin trait—for the purposes of proficiency, you treat any of these that are martial weapons as simple weapons and any that are advanced weapons as martial weapons.")
@@ -113,38 +79,41 @@ public static class GoblinAncestryLoader
                 sheet.Proficiencies.AddProficiencyAdjustment(traits => traits.Contains(Trait.Goblin) && traits.Contains(Trait.Martial), Trait.Simple);
                 sheet.Proficiencies.AddProficiencyAdjustment(traits => traits.Contains(Trait.Goblin) && traits.Contains(Trait.Advanced), Trait.Martial);
             });
-        yield return new KoboldAncestryFeat("Kobold Breath",
-                "You channel your draconic exemplar's power into a gout of energy.",
-                "You gain a breath weapon attack that manifests as a 30-foot line or a 15-foot cone, dealing 1d4 damage. Each creature in the area must attempt a basic Reflex saving throw against the higher of your class DC. You can't use this ability again for 1d4 rounds.\n\nAt 3rd level, the damage increases by 1d4. The shape of the breath and the damage type match those of your draconic exemplar.")
-            .WithActionCost(2)
-            .WithOnCreature((sheet, creature) =>
-            {
-                var exemplarFeat = sheet.AllFeats.FirstOrDefault(ft => ft.Name.StartsWith("Draconic exemplar:"));
-                if (exemplarFeat != null)
-                {
-                    var draconicExemplar = DraconicExemplarDescription.DraconicExemplarDescriptions[exemplarFeat.Name];
-                    creature.AddQEffect(new QEffect("Breath Weapon", "You have a breath weapon.")
-                    {
-                        ProvideMainAction = (qfSelf) =>
-                        {
-                            var kobold = qfSelf.Owner;
-                            return new ActionPossibility(new CombatAction(kobold, IllustrationName.BreathWeapon, "Breath Weapon", Array.Empty<Trait>(),
-                                    "You manifest as a 30-foot line or a 15-foot cone, dealing 1d4 damage. Each creature in the area must attempt a basic Reflex saving throw against your class DC. You can't use this ability again for 1d4 rounds.\n\nAt 3rd level, the damage increases by 1d4. The shape of the breath and the damage type match those of your draconic exemplar.",
-                                    draconicExemplar.IsCone ? Target.Cone(3) : Target.Line(6))
-                                .WithActionCost(2)
-                                .WithProjectileCone(IllustrationName.BreathWeapon, 15, ProjectileKind.Cone)
-                                .WithSoundEffect(SfxName.FireRay)
-                                .WithSavingThrow(new SavingThrow(draconicExemplar.SavingThrow, (breathOwner) => 13 + breathOwner.Level + GetBestAbility(breathOwner)))
-                                .WithEffectOnEachTarget((async (spell, caster, target, result) => { await CommonSpellEffects.DealBasicDamage(spell, caster, target, result, (caster.Level + 1) / 2 + "d4", draconicExemplar.DamageKind); }))
-                                .WithEffectOnChosenTargets((async (spell, caster, targets) =>
-                                {
-                                    caster.AddQEffect(QEffect.CannotUseForXRound("Breath Weapon", caster, R.Next(2, 5)));
-                                }))
-                            ).WithPossibilityGroup(Constants.POSSIBILITY_GROUP_ADDITIONAL_NATURAL_STRIKE);
-                        }
-                    });
-                }
-            });
+
+        yield return new GoblinAncestryFeat("Bouncy Goblin",
+               "You have a particular elasticity that makes it easy for you to bounce and squish. ",
+               "You gain the trained proficiency rank in Acrobatics (or another skill of your choice, if you were already trained in Acrobatics). You also gain a +2 circumstance bonus to Acrobatics checks to Tumble Through a foe’s space.")
+           .WithOnCreature(creature =>
+           {
+               creature.AddQEffect(new QEffect("Bouncy Goblin", "You have a 2+ bonus to Tumble Through.")
+               {
+                   BonusToAttackRolls = (qfSelf, combatAction, defender) =>
+                   {
+                       if (combatAction.ActionId == ActionId.TumbleThrough) return new Bonus(2, BonusType.Circumstance, "Bouncy Goblin");
+                       return null;
+                   }
+               });
+           }).WithPrerequisite(values => values.AllFeats.Any(feat => feat.Name.Equals("Unbreakable Goblin")), "You must be an Unbreakable Goblin.")
+           .WithOnSheet(sheet =>
+           {
+
+               if (sheet.GetProficiency(Trait.Acrobatics) == Proficiency.Untrained)
+               {
+                   sheet.SetProficiency(Trait.Acrobatics, Proficiency.Trained);
+               }
+               else
+               {
+                   sheet.AddSelectionOption(
+                       new SingleFeatSelectionOption(
+                           "Bouncy Goblin Skill",
+                           "Bouncy Goblin skill",
+                           -1,
+                           (ft) => ft is SkillSelectionFeat)
+
+                           );
+               }
+           });
+
     }
 
     private static int GetBestAbility(Creature creature)
@@ -166,7 +135,7 @@ public static class GoblinAncestryLoader
                 "You're not like most other Goblins and don't share their fragile builds.",
                 "You have two free ability boosts instead of a Goblin's normal ability boosts and flaw.")
             .WithCustomName("Unusual Goblin")
-            .WithOnSheet((sheet) =>
+            .WithOnSheet(sheet =>
             {
                 sheet.AbilityBoostsFabric.AbilityFlaw = null;
                 sheet.AbilityBoostsFabric.AncestryBoosts =
@@ -211,7 +180,19 @@ public static class GoblinAncestryLoader
                    {
                        var Goblin = qfSelf.Owner;
                        Goblin.WeaknessAndResistance.AddResistance(DamageKind.Fire, resistanceValue);
-                      // Fiture out how to reduce Flatcheck...
+                     /*  Goblin.QEffects.Select(effect =>
+                       {
+                           if (effect.Id == QEffectId.PersistentDamage)
+                           {
+                               effect.
+                           }
+                           else
+                               return effect;
+
+                       }
+                               );
+                     */
+
                    },
 
                });
@@ -223,12 +204,18 @@ public static class GoblinAncestryLoader
             .WithCustomName("Razortooth Goblin")
             .WithOnCreature(creature =>
             {
-        creature.AddQEffect(new QEffect("Razortooth", "You have a jaws attack.")
-        {
-            AdditionalUnarmedStrike = new Item(IllustrationName.Jaws, "jaws",
-                    new[] { Trait.Finesse, Trait.Unarmed, Trait.Melee, Trait.Weapon })
-                .WithWeaponProperties(new WeaponProperties("1d6", DamageKind.Piercing))
-        });
-    });
+                creature.AddQEffect(new QEffect("Razortooth", "You have a jaws attack.")
+                {
+                    AdditionalUnarmedStrike = new Item(IllustrationName.Jaws, "jaws",
+                            new[] { Trait.Finesse, Trait.Unarmed, Trait.Melee, Trait.Weapon })
+                        .WithWeaponProperties(new WeaponProperties("1d6", DamageKind.Piercing))
+                });
+            });
+
+        yield return new HeritageSelectionFeat(FeatName.CustomFeat,
+               "You're able to bounce back from injuries easily due to an exceptionally thick skull, cartilaginous bones, or some other mixed blessing. ",
+               " You gain 10 Hit Points from your ancestry instead of 6. If there was falling damage in this game, you would reduce the falling damage you take as though you had fallen half the distance.")
+           .WithCustomName("Unbreakable Goblin")
+           .WithOnCreature(creature => creature.MaxHP += 4);
     }
 }
