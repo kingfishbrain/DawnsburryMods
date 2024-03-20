@@ -41,6 +41,7 @@ public static class GoblinAncestryLoader
             {
                 IsAncestryTrait = true
             });
+        GoblinWeapons.RegisterWeapons();
         AddFeats(CreateGoblinAncestryFeats());
 
         ModManager.AddFeat(new AncestrySelectionFeat(
@@ -132,6 +133,7 @@ public static class GoblinAncestryLoader
                        return null;
                    }
                    
+                   
                });
                
            });
@@ -203,20 +205,21 @@ public static class GoblinAncestryLoader
                    {
                        var Goblin = qfSelf.Owner;
                        Goblin.WeaknessAndResistance.AddResistance(DamageKind.Fire, resistanceValue);
-                     /*  Goblin.QEffects.Select(effect =>
-                       {
-                           if (effect.Id == QEffectId.PersistentDamage)
-                           {
-                               effect.
-                           }
-                           else
-                               return effect;
+                       /*  Goblin.QEffects.Select(effect =>
+                         {
+                             if (effect.Id == QEffectId.PersistentDamage)
+                             {
+                                 effect.
+                             }
+                             else
+                                 return effect;
 
-                       }
-                               );
-                     */
+                         }
+                                 );
+                       */
 
                    },
+                   //TO DO add peristant reduction, possibly here?
 
                });
            });
