@@ -228,7 +228,7 @@ public static class GoblinAncestryLoader
         yield return new HeritageSelectionFeat(FeatName.CustomFeat,
                "Your ancestors have always had a connection to fire and a thicker skin, which allows you to resist burning.",
                "You gain fire resistance equal to half your level (minimum 1). You can also recover from being on fire more easily. " +
-               "Your flat check to remove persistent fire damage is DC 10 instead of DC 15." + "(the flatcheck part isn't added yet)")
+               "Your flat check to remove persistent fire damage is DC 10 instead of DC 15."
            .WithCustomName("Charhide Goblin")
            .WithOnCreature((sheet, creature) =>
            {
@@ -241,14 +241,25 @@ public static class GoblinAncestryLoader
                    {
                        var Goblin = qfSelf.Owner;
                        Goblin.WeaknessAndResistance.AddResistance(DamageKind.Fire, resistanceValue);
-                       /*  Goblin.QEffects.Select(effect =>
+
+
+                   },
+               });
+           }).WithPermanentQEffect("Your flat check to remove persistent fire damage is DC 10 instead of DC 15", qfCharred =>
                          {
-                             if (effect.Id == QEffectId.PersistentDamage)
+               qfCharred.YouAcquireQEffect = (qfCharredSelf, qfIncoming) =>
                              {
-                                 effect.
+                   if (qfIncoming.Id == QEffectId.PersistentDamage && qfIncoming.Key == "PersistentDamage:Fire")
+                   {
+                       qfIncoming.EndOfYourTurn = async (qf, self) =>
+                       {
+                           await self.DealDirectDamage(CombatAction.CreateSimple(self.Battle.Pseudocreature, "Persistent damage"),
+                               DiceFormula.FromText(qfIncoming.Name.Split(" ")[0]), self, CheckResult.Failure, DamageKind.Fire);
+                           if (!self.DeathScheduledForNextStateCheck && (self.Actions.HasDelayedYieldingTo == null || self.HasTrait(Trait.AnimalCompanion)))
+                           {
+                               qf.RollPersistentDamageRecoveryCheck(true); // <-- HERE YOU CHANGE FROM NONASSISTED TO ASSISTED; or you could even inline the method to get further control
                              }
-                             else
-                                 return effect;
+                       };
 
                          }
                                  );
