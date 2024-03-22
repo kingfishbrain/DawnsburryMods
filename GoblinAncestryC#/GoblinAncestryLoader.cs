@@ -205,7 +205,7 @@ public static class GoblinAncestryLoader
                             new[] {Trait.Unarmed, Trait.Melee, Trait.Weapon})
                         .WithWeaponProperties(new WeaponProperties("1d6", DamageKind.Bludgeoning))
                 });
-            });
+            }).WithPrerequisite(values => values.AllFeats.Any(feat => feat.Name.Equals("Tailed Goblin")), "You must be a Tailed Goblin.");
 
     }
 
