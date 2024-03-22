@@ -160,8 +160,7 @@ public static class GoblinAncestryLoader
                {
                    qfBurnItOnAnEnemy.YouAcquireQEffect = (qfBurnItOnAnEnemySelf, qfIncoming) =>
                    {
-                       if (qfIncoming.Id == QEffectId.PersistentDamage) IO.GeneralLog.Log((qfIncoming.Source == null).ToString()); //Returns True so .Source is always null on peri
-                       if (qfIncoming.Id == QEffectId.PersistentDamage  && qfIncoming.Key == "PersistentDamage:Fire") //Need an addiotnal restriction here to check for correct source
+                       if (qfIncoming.Id == QEffectId.PersistentDamage   && qfBurnIt.Owner.Battle.ActiveCreature == qfBurnIt.Owner && qfIncoming.Key == "PersistentDamage:Fire") //Need an addiotnal restriction here to check for correct source
                        {
                            IO.GeneralLog.Log("Reaches past Peristant check");
                            return QEffect.PersistentDamage(qfIncoming.Name.Split(" ")[0] + "+1", DamageKind.Fire);
