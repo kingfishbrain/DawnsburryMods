@@ -194,6 +194,18 @@ public static class GoblinAncestryLoader
                      };
                  });
              });
+        yield return new GoblinAncestryFeat("Hard Tail",
+            "Your tail is much stronger than most, and you can lash out with it with the strength of a whip." ,
+            "You gain a tail unarmed attack that deals 1d6 bludgeoning damage.")
+            .WithOnCreature(creature =>
+            {
+                creature.AddQEffect(new QEffect("Hard Tail", "You have a tail attack.")
+                {
+                    AdditionalUnarmedStrike = new Item(IllustrationName.Jaws, "jaws",
+                            new[] {Trait.Unarmed, Trait.Melee, Trait.Weapon})
+                        .WithWeaponProperties(new WeaponProperties("1d6", DamageKind.Bludgeoning))
+                });
+            });
 
     }
 
