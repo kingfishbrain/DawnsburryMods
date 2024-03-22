@@ -24,6 +24,7 @@ using global::Dawnsbury.Core.Creatures;
 using global::Dawnsbury.Core.Mechanics.Enumerations;
 using global::Dawnsbury.Modding;
 using Microsoft.Xna.Framework.Graphics;
+using System.Text;
 
 namespace Dawnsbury.Mods.Ancestries.Goblin;
 
@@ -34,7 +35,7 @@ public static class GoblinAncestryLoader
     [DawnsburyDaysModMainMethod]
     public static void LoadMod()
     {
-        
+
         GoblinTrait = ModManager.RegisterTrait(
             "Goblin",
             new TraitProperties("Goblin", true)
@@ -122,21 +123,57 @@ public static class GoblinAncestryLoader
                "Your spells and alchemical items that deal fire damage gain a status bonus to damage equal to half the spell's level" +
                "or one-quarter the item's level (minimum 1). " +
                "You also gain a +1 status bonus to any persistent fire damage you deal. (Persistant fire bonus damage not yet added)") //TO DO
-           .WithOnCreature(creature =>
+           .WithOnCreature(goblin =>
            {
-               creature.AddQEffect(new QEffect("Burn It!", "Adds damage to fire spells")
+               var burnIt = new QEffect("Burn It!", "Adds damage to fire spells")
                {
                    BonusToDamage = (qfSelf, combatAction, defender) =>
                    {
-                       if (combatAction.HasTrait(Trait.Fire) && (combatAction.HasTrait(Trait.Spell))) 
+                       if (combatAction.HasTrait(Trait.Fire) && (combatAction.HasTrait(Trait.Spell)))
                            return new Bonus(combatAction.SpellLevel / 2, BonusType.Status, "Burn It!");
                        return null;
+
                    }
-                   
-                   
+
+
+               };
+
+               /*    ModManager.RegisterActionOnEachCreature(creature =>
+                   {
+                       creature.AddQEffect(new QEffect()
+                       {
+                           YouAcquireQEffect = (qfSelf, qfAdded) =>
+                           {
+                               if (qfAdded.Id == QEffectId.PersistentDamage && qfAdded.Source.HasEffect(burnIt) && qfAdded.)
+                               {
+
+                               }
+                           }
+                       });
+
+                   }); */
+               goblin.AddQEffect(burnIt);
+
+           }).WithPermanentQEffect("Increase persistant fire damage", qfBurnIt =>
+           {
+               qfBurnIt.AddGrantingOfTechnical(cr => cr.EnemyOf(qfBurnIt.Owner), qfBurnItOnAnEnemy =>
+               {
+                   qfBurnItOnAnEnemy.YouAcquireQEffect = (qfBurnItOnAnEnemySelf, qfIncoming) =>
+                   {
+                       if (qfIncoming.Id == QEffectId.PersistentDamage) IO.GeneralLog.Log((qfIncoming.Source == null).ToString()); //Returns True so .Source is always null on peri
+                       if (qfIncoming.Id == QEffectId.PersistentDamage  && qfIncoming.Key == "PersistentDamage:Fire") //Need an addiotnal restriction here to check for correct source
+                       {
+                           IO.GeneralLog.Log("Reaches past Peristant check");
+                           return QEffect.PersistentDamage(qfIncoming.Name.Split(" ")[0] + "+1", DamageKind.Fire);
+                       }
+                       else
+                       {
+                           return qfIncoming;
+                       }
+                   };
                });
-               
            });
+        ;
 
 
     }
