@@ -173,7 +173,27 @@ public static class GoblinAncestryLoader
                });
            });
         ;
-
+        yield return new GoblinAncestryFeat("Scuttle",
+                "You take advantage of your ally’s movement to adjust your position.",
+                "Trigger An ally ends a move action adjacent to you. \n You Step.")
+             .WithPermanentQEffect("Trigger An ally ends a move action adjacent to you. \n You Step.", qfScuttle =>
+             {
+                 qfScuttle.AddGrantingOfTechnical(cr => cr.FriendOf(qfScuttle.Owner), qfScuttleTechnical =>
+                 {
+                     qfScuttleTechnical.AfterYouTakeAction = async (qfScuttleTechnical2, allysCombatAction) =>
+                     {
+                         if (allysCombatAction.HasTrait(Trait.Move) &&
+                             qfScuttleTechnical2.Owner.IsAdjacentTo(qfScuttle.Owner))
+                         {
+                             if (await qfScuttle.Owner.Battle.AskToUseReaction(qfScuttle.Owner,
+                                     "An ally ended near you. Scuttle?"))
+                             {
+                                 await qfScuttle.Owner.StrideAsync("Take a step.", allowStep: true, maximumFiveFeet: true, allowCancel: true);
+                             }
+                         }
+                     };
+                 });
+             });
 
     }
 
