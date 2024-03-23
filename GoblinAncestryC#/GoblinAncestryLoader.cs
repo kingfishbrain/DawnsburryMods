@@ -207,7 +207,137 @@ public static class GoblinAncestryLoader
                 });
             }).WithPrerequisite(values => values.AllFeats.Any(feat => feat.Name.Equals("Tailed Goblin")), "You must be a Tailed Goblin.");
 
+        yield return new GoblinAncestryFeat("Goblin Song",
+        "You sing annoying goblin songs, distracting your foes with silly and repetitive lyrics.",
+        "Attempt a Performance check against the Will DC of a single enemy within 30 feet. This has all the usual traits and restrictions of a Performance check. " +
+        "You can affect up to two targets within range if you have expert proficiency in Performance, four if you have master proficiency, " +
+        "and eight if you have legendary proficiency. \n " +
+        "Critical Success The target takes a –1 status penalty to Perception checks and Will saves for 1 minute." +
+        "\r\nSuccess The target takes a –1 status penalty to Perception checks and Will saves for 1 round." +
+        "\r\nCritical Failure The target is temporarily immune to attempts to use Goblin Song for 1 hour.")
+        .WithActionCost(2)
+        .WithOnCreature((sheet, creature) =>
+        {
+            var performance = creature.PersistentCharacterSheet.Calculated.GetProficiency(Trait.Performance);
+#pragma warning disable CS8524 //enum is exhaustingly matched so there is no need for a default case
+            int targetCount = performance switch
+            {
+                Proficiency.Untrained => 1,
+                Proficiency.Trained => 1,
+                Proficiency.Expert => 2,
+                Proficiency.Master => 4,
+                Proficiency.Legendary => 8
+            };
+
+            QEffect immunity = new QEffect("Goblin Song Critical Failure", "Immunity to Goblin Song");
+
+            Target targets = Target.MultipleCreatureTargets(Enumerable.Repeat(Target.Ranged(6)
+                .WithAdditionalConditionOnTargetCreature((caster, target) =>
+                {
+                    if (target.DoesNotSpeakCommon) {
+                        return Usability.NotUsableOnThisCreature("Target cannot understand the thoughtful lyrics"); 
     }
+
+                    if (target.HasEffect(immunity.Id))
+                    {
+                        return Usability.NotUsableOnThisCreature("Target is immune due to a previous critically failed attempt at Goblin Song");
+                    } // To be tested: check for Immunity effect to Goblin Song from multiple sources
+                    return Usability.Usable;
+                })
+                 , targetCount).ToArray())
+                .WithSimultaneousAnimation()
+                .WithMinimumTargets(1)
+                .WithMustBeDistinct()
+                .WithOverriddenTargetLine("up to " + targetCount.ToString() + " enemies.", true)
+                ;
+
+            creature.AddQEffect(new QEffect("Goblin Song", "You can use Goblin Song against " + targets.ToString() + " enemies")
+            {
+                ProvideMainAction = (qfSelf) =>
+                {
+                    var goblin = qfSelf.Owner;
+
+                    return new ActionPossibility(new CombatAction
+                        (goblin, IllustrationName.Deafness, "Goblin Song", Array.Empty<Trait>(),
+                                "Attempt a Performance check against the Will DC of up to " + targets.ToString() + " enemy within 30 feet. This has all the usual traits and restrictions of a Performance check. " +
+                                "\r\nCritical Success The target takes a –1 status penalty to Perception checks and Will saves for 1 minute." +
+                                "\r\nSuccess The target takes a –1 status penalty to Perception checks and Will saves for 1 round." +
+                                "\r\nCritical Failure The target is temporarily immune to attempts to use Goblin Song for 1 hour.",
+                                targets)
+                        .WithActionCost(1)
+                        .WithSoundEffect(SfxName.Intimidate)
+                        .WithActiveRollSpecification(new ActiveRollSpecification(Checks.SkillCheck(Skill.Performance), Checks.DefenseDC(Defense.Will)))
+                        .WithEffectOnEachTarget(async (song, caster, target, result) =>
+                        {
+
+                            if (result is CheckResult.CriticalSuccess)
+                            {
+                                target.AddQEffect(new QEffect("Goblin Song Critical Success", "–1 status penalty to Perception checks and Will saves",
+                                    ExpirationCondition.CountsDownAtStartOfSourcesTurn, caster)
+                                {
+                                    RoundsLeft = 6,
+                                    BonusToDefenses = (qfSelf, incomingEffect, targetedDefense) =>
+                                    {
+                                        if(targetedDefense == Defense.Will || targetedDefense == Defense.Perception)
+                                        {
+                                            return new Bonus(-1, BonusType.Status, "Goblin Song Critical Success");
+                                        }
+                                        return null;
+                                    },
+                                    BonusToAttackRolls = (qfSelf, combatAction, target) =>
+                                    {
+                                        if (combatAction.HasTrait(Trait.Perception))
+                                        {
+                                            return new Bonus(-1, BonusType.Status, "Goblin Song Critical Success");
+                                        }
+                                        return null;
+                                    }
+                                    
+
+                                });
+                            }
+                            
+                            if (result is CheckResult.Success)
+                            {
+                                target.AddQEffect(new QEffect("Goblin Song Success", "–1 status penalty to Perception checks and Will saves",
+                                    ExpirationCondition.CountsDownAtStartOfSourcesTurn, caster)
+                                {
+                                    RoundsLeft = 1,
+                                    BonusToDefenses = (qfSelf, incomingEffect, targetedDefense) =>
+                                    {
+                                        if (targetedDefense == Defense.Will || targetedDefense == Defense.Perception)
+                                        {
+                                            return new Bonus(-1, BonusType.Status, "Goblin Song Success");
+                                        }
+                                        return null;
+                                    },
+                                    BonusToAttackRolls = (qfSelf, combatAction, target) =>
+                                    {
+                                        if (combatAction.HasTrait(Trait.Perception))
+                                        {
+                                            return new Bonus(-1, BonusType.Status, "Goblin Song Success");
+                                        }
+                                        return null;
+                                    }
+
+
+                                });
+                            }
+                            if (result is CheckResult.CriticalFailure)
+                            {
+                                target.AddQEffect(immunity);
+                            }
+                        }
+                        ));
+
+                }
+            }
+
+                );
+
+        });
+
+            }
 
 
     private static IEnumerable<Feat> CreateGoblinHeritages()
