@@ -209,18 +209,6 @@ public static class GoblinAncestryLoader
 
     }
 
-    private static int GetBestAbility(Creature creature)
-    {
-        int bestAbility = 0;
-        if (creature.Abilities.Strength > bestAbility) bestAbility = creature.Abilities.Strength;
-        if (creature.Abilities.Dexterity > bestAbility) bestAbility = creature.Abilities.Dexterity;
-        if (creature.Abilities.Constitution > bestAbility) bestAbility = creature.Abilities.Constitution;
-        if (creature.Abilities.Intelligence > bestAbility) bestAbility = creature.Abilities.Intelligence;
-        if (creature.Abilities.Wisdom > bestAbility) bestAbility = creature.Abilities.Wisdom;
-        if (creature.Abilities.Charisma > bestAbility) bestAbility = creature.Abilities.Charisma;
-        return bestAbility;
-    }
-
 
     private static IEnumerable<Feat> CreateGoblinHeritages()
     {
