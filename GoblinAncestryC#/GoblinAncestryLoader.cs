@@ -440,5 +440,31 @@ public static class GoblinAncestryLoader
                " You gain 10 Hit Points from your ancestry instead of 6. If the third dimension existed in this game, you would reduce the falling damage you take as though you had fallen half the distance.")
            .WithCustomName("Unbreakable Goblin")
            .WithOnCreature(creature => creature.MaxHP += 4);
+
+        yield return new HeritageSelectionFeat(FeatName.CustomFeat,
+        "You have a powerful tail, likely because you descend from a community of monkey goblins.",
+        "You reduce the number of free hands required to Trip by one.")
+    .WithCustomName("Tailed Goblin")
+    .WithPermanentQEffect("You reduce the number of free hands required to Trip by one.", qfTailed =>
+    {
+        qfTailed.ProvideActionIntoPossibilitySection = (effect, section) =>
+        {
+            if (section.PossibilitySectionId != PossibilitySectionId.AttackManeuvers) return null;
+            if (effect.Owner.HasFreeHand)
+                return null; // do nothing -- will be handled by the normal Trip action
+            var customTrip = Possibilities.CreateTrip(effect.Owner);
+            var customTripTarget = (customTrip.Target as CreatureTarget);
+            customTripTarget.CreatureTargetingRequirements.Clear();
+            customTripTarget.CreatureTargetingRequirements.Add(new AdjacencyCreatureTargetingRequirement());
+            customTripTarget.CreatureTargetingRequirements.Add(new EnemyCreatureTargetingRequirement());
+            customTripTarget.CreatureTargetingRequirements.Add(new LegacyCreatureTargetingRequirement((a, d) =>
+                 !d.HasEffect(QEffectId.Prone)
+                     ? Usability.Usable
+                     : Usability.CommonReasons.TargetIsAlreadyProne));
+            return new ActionPossibility(customTrip);
+        };
+    });
+
+
     }
 }
