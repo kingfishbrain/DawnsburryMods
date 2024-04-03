@@ -152,20 +152,7 @@ public static class GoblinAncestryLoader
 
                };
 
-               /*    ModManager.RegisterActionOnEachCreature(creature =>
-                   {
-                       creature.AddQEffect(new QEffect()
-                       {
-                           YouAcquireQEffect = (qfSelf, qfAdded) =>
-                           {
-                               if (qfAdded.Id == QEffectId.PersistentDamage && qfAdded.Source.HasEffect(burnIt) && qfAdded.)
-                               {
-
-                               }
-                           }
-                       });
-
-                   }); */
+ 
                goblin.AddQEffect(burnIt);
 
            }).WithPermanentQEffect("Increase persistant fire damage", qfBurnIt =>
@@ -175,7 +162,7 @@ public static class GoblinAncestryLoader
                    qfBurnItOnAnEnemy.YouAcquireQEffect = (qfBurnItOnAnEnemySelf, qfIncoming) =>
                    {
                        if (qfIncoming.Id == QEffectId.PersistentDamage && qfBurnIt.Owner.Battle.ActiveCreature == qfBurnIt.Owner
-                       && qfIncoming.Key == "PersistentDamage:Fire") //Need an addiotnal restriction here to check for correct source
+                       && qfIncoming.Key == "PersistentDamage:Fire") 
                        {
                            return QEffect.PersistentDamage(qfIncoming.Name.Split(" ")[0] + "+1", DamageKind.Fire);
                        }
@@ -254,7 +241,7 @@ public static class GoblinAncestryLoader
                     if (target.QEffects.Any(effect => effect.Name == "Goblin Song Critical Failure"))
                     {
                         return Usability.NotUsableOnThisCreature("Target is immune due to a previous critically failed attempt at Goblin Song");
-                    } // To be tested: check for Immunity effect to Goblin Song from multiple sources
+                    } 
 
 
                     return Usability.Usable;
