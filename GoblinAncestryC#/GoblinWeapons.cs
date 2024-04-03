@@ -7,7 +7,6 @@ using Dawnsbury.Core.Mechanics.Treasure;
 
 
 namespace Dawnsbury.Mods.Ancestries.Goblin;
-{
     public static class GoblinWeapons
     {
         public static void RegisterWeapons()
@@ -17,4 +16,3 @@ namespace Dawnsbury.Mods.Ancestries.Goblin;
                 .WithWeaponProperties(new WeaponProperties("1d8", DamageKind.Slashing)));
         }
     }
-}

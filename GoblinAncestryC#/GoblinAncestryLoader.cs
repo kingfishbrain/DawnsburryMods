@@ -25,6 +25,9 @@ using global::Dawnsbury.Core.Mechanics.Enumerations;
 using global::Dawnsbury.Modding;
 using Microsoft.Xna.Framework.Graphics;
 using System.Text;
+using Dawnsbury.Core.Roller;
+using Dawnsbury.Core.Mechanics.Targeting.TargetingRequirements;
+using Dawnsbury.Core.Mechanics.Targeting.Targets;
 
 namespace Dawnsbury.Mods.Ancestries.Goblin;
 
@@ -160,9 +163,9 @@ public static class GoblinAncestryLoader
                {
                    qfBurnItOnAnEnemy.YouAcquireQEffect = (qfBurnItOnAnEnemySelf, qfIncoming) =>
                    {
-                       if (qfIncoming.Id == QEffectId.PersistentDamage   && qfBurnIt.Owner.Battle.ActiveCreature == qfBurnIt.Owner && qfIncoming.Key == "PersistentDamage:Fire") //Need an addiotnal restriction here to check for correct source
+                       if (qfIncoming.Id == QEffectId.PersistentDamage && qfBurnIt.Owner.Battle.ActiveCreature == qfBurnIt.Owner
+                       && qfIncoming.Key == "PersistentDamage:Fire") //Need an addiotnal restriction here to check for correct source
                        {
-                           IO.GeneralLog.Log("Reaches past Peristant check");
                            return QEffect.PersistentDamage(qfIncoming.Name.Split(" ")[0] + "+1", DamageKind.Fire);
                        }
                        else
@@ -172,7 +175,7 @@ public static class GoblinAncestryLoader
                    };
                });
            });
-        ;
+
         yield return new GoblinAncestryFeat("Scuttle",
                 "You take advantage of your ally’s movement to adjust your position.",
                 "Trigger An ally ends a move action adjacent to you. \n You Step.")
@@ -195,14 +198,14 @@ public static class GoblinAncestryLoader
                  });
              });
         yield return new GoblinAncestryFeat("Hard Tail",
-            "Your tail is much stronger than most, and you can lash out with it with the strength of a whip." ,
+            "Your tail is much stronger than most, and you can lash out with it with the strength of a whip.",
             "You gain a tail unarmed attack that deals 1d6 bludgeoning damage.")
             .WithOnCreature(creature =>
             {
                 creature.AddQEffect(new QEffect("Hard Tail", "You have a tail attack.")
                 {
                     AdditionalUnarmedStrike = new Item(IllustrationName.Jaws, "jaws",
-                            new[] {Trait.Unarmed, Trait.Melee, Trait.Weapon})
+                            new[] { Trait.Unarmed, Trait.Melee, Trait.Weapon })
                         .WithWeaponProperties(new WeaponProperties("1d6", DamageKind.Bludgeoning))
                 });
             }).WithPrerequisite(values => values.AllFeats.Any(feat => feat.Name.Equals("Tailed Goblin")), "You must be a Tailed Goblin.");
@@ -229,16 +232,14 @@ public static class GoblinAncestryLoader
                 Proficiency.Legendary => 8
             };
 
-            QEffect immunity = new QEffect("Goblin Song Critical Failure", "Immunity to Goblin Song");
-
             Target targets = Target.MultipleCreatureTargets(Enumerable.Repeat(Target.Ranged(6)
                 .WithAdditionalConditionOnTargetCreature((caster, target) =>
                 {
                     if (target.DoesNotSpeakCommon) {
                         return Usability.NotUsableOnThisCreature("Target cannot understand the thoughtful lyrics"); 
-    }
+                    }
 
-                    if (target.HasEffect(immunity.Id))
+                    if (target.QEffects.Any(effect => effect.Name == "Goblin Song Critical Failure"))
                     {
                         return Usability.NotUsableOnThisCreature("Target is immune due to a previous critically failed attempt at Goblin Song");
                     } // To be tested: check for Immunity effect to Goblin Song from multiple sources
@@ -258,7 +259,7 @@ public static class GoblinAncestryLoader
                     var goblin = qfSelf.Owner;
 
                     return new ActionPossibility(new CombatAction
-                        (goblin, IllustrationName.Deafness, "Goblin Song", Array.Empty<Trait>(),
+                        (goblin, IllustrationName.Deafened, "Goblin Song", Array.Empty<Trait>(),
                                 "Attempt a Performance check against the Will DC of up to " + targets.ToString() + " enemy within 30 feet. This has all the usual traits and restrictions of a Performance check. " +
                                 "\r\nCritical Success The target takes a –1 status penalty to Perception checks and Will saves for 1 minute." +
                                 "\r\nSuccess The target takes a –1 status penalty to Perception checks and Will saves for 1 round." +
@@ -273,8 +274,9 @@ public static class GoblinAncestryLoader
                             if (result is CheckResult.CriticalSuccess)
                             {
                                 target.AddQEffect(new QEffect("Goblin Song Critical Success", "–1 status penalty to Perception checks and Will saves",
-                                    ExpirationCondition.CountsDownAtStartOfSourcesTurn, caster)
+                                    ExpirationCondition.CountsDownAtStartOfSourcesTurn, caster, IllustrationName.Deafened)
                                 {
+                                    CountsAsADebuff = true,
                                     RoundsLeft = 6,
                                     BonusToDefenses = (qfSelf, incomingEffect, targetedDefense) =>
                                     {
@@ -302,6 +304,7 @@ public static class GoblinAncestryLoader
                                 target.AddQEffect(new QEffect("Goblin Song Success", "–1 status penalty to Perception checks and Will saves",
                                     ExpirationCondition.CountsDownAtStartOfSourcesTurn, caster)
                                 {
+                                    CountsAsADebuff = true,
                                     RoundsLeft = 1,
                                     BonusToDefenses = (qfSelf, incomingEffect, targetedDefense) =>
                                     {
@@ -325,6 +328,7 @@ public static class GoblinAncestryLoader
                             }
                             if (result is CheckResult.CriticalFailure)
                             {
+                                QEffect immunity = new QEffect("Goblin Song Critical Failure", "Immunity to Goblin Song");
                                 target.AddQEffect(immunity);
                             }
                         }
@@ -337,7 +341,7 @@ public static class GoblinAncestryLoader
 
         });
 
-            }
+    }
 
 
     private static IEnumerable<Feat> CreateGoblinHeritages()
@@ -396,9 +400,9 @@ public static class GoblinAncestryLoader
                    },
                });
            }).WithPermanentQEffect("Your flat check to remove persistent fire damage is DC 10 instead of DC 15", qfCharred =>
-                         {
+           {
                qfCharred.YouAcquireQEffect = (qfCharredSelf, qfIncoming) =>
-                             {
+               {
                    if (qfIncoming.Id == QEffectId.PersistentDamage && qfIncoming.Key == "PersistentDamage:Fire")
                    {
                        qfIncoming.EndOfYourTurn = async (qf, self) =>
@@ -408,18 +412,14 @@ public static class GoblinAncestryLoader
                            if (!self.DeathScheduledForNextStateCheck && (self.Actions.HasDelayedYieldingTo == null || self.HasTrait(Trait.AnimalCompanion)))
                            {
                                qf.RollPersistentDamageRecoveryCheck(true); // <-- HERE YOU CHANGE FROM NONASSISTED TO ASSISTED; or you could even inline the method to get further control
-                             }
+                           }
                        };
 
-                         }
-                                 );
-                       */
-
-                   },
-                   //TO DO add peristant reduction, possibly here?
-
-               });
-           });
+                   }
+                   return qfIncoming;
+               };
+           }
+    );
 
         yield return new HeritageSelectionFeat(FeatName.CustomFeat,
                 "Your family's teeth are formidable weapons.",
