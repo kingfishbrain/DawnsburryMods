@@ -215,7 +215,7 @@ public static class GoblinAncestryLoader
             {
                 creature.AddQEffect(new QEffect("Hard Tail", "You have a tail attack.")
                 {
-                    AdditionalUnarmedStrike = new Item(IllustrationName.Jaws, "jaws",
+                    AdditionalUnarmedStrike = new Item(IllustrationName.Tail, "tail",
                             new[] { Trait.Unarmed, Trait.Melee, Trait.Weapon })
                         .WithWeaponProperties(new WeaponProperties("1d6", DamageKind.Bludgeoning))
                 });
