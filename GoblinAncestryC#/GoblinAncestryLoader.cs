@@ -28,16 +28,27 @@ using System.Text;
 using Dawnsbury.Core.Roller;
 using Dawnsbury.Core.Mechanics.Targeting.TargetingRequirements;
 using Dawnsbury.Core.Mechanics.Targeting.Targets;
+using Dawnsbury.Display.Illustrations;
+using Microsoft.Xna.Framework.Audio;
 
 namespace Dawnsbury.Mods.Ancestries.Goblin;
 
 public static class GoblinAncestryLoader
 {
+
+    private static ModdedIllustration GoblinNoteIllustration;
+
+    private static SfxName GoblinSongSoundEffect;
+
     public static Trait GoblinTrait;
 
     [DawnsburyDaysModMainMethod]
     public static void LoadMod()
     {
+
+        GoblinNoteIllustration = File.Exists(@"..\CustomMods\GoblinAncestryResources\GoblinNote.png") ? new ModdedIllustration(@"GoblinAncestryResources\GoblinNote.png") : null;
+
+        GoblinSongSoundEffect = ModManager.RegisterNewSoundEffect(@"GoblinAncestryResources\GoblinSong.mp3");
 
         GoblinTrait = ModManager.RegisterTrait(
             "Goblin",
@@ -235,14 +246,17 @@ public static class GoblinAncestryLoader
             Target targets = Target.MultipleCreatureTargets(Enumerable.Repeat(Target.Ranged(6)
                 .WithAdditionalConditionOnTargetCreature((caster, target) =>
                 {
-                    if (target.DoesNotSpeakCommon) {
-                        return Usability.NotUsableOnThisCreature("Target cannot understand the thoughtful lyrics"); 
+                    if (target.DoesNotSpeakCommon)
+                    {
+                        return Usability.NotUsableOnThisCreature("Target cannot understand the thoughtful lyrics");
                     }
 
                     if (target.QEffects.Any(effect => effect.Name == "Goblin Song Critical Failure"))
                     {
                         return Usability.NotUsableOnThisCreature("Target is immune due to a previous critically failed attempt at Goblin Song");
                     } // To be tested: check for Immunity effect to Goblin Song from multiple sources
+
+
                     return Usability.Usable;
                 })
                  , targetCount).ToArray())
@@ -259,28 +273,35 @@ public static class GoblinAncestryLoader
                     var goblin = qfSelf.Owner;
 
                     return new ActionPossibility(new CombatAction
-                        (goblin, IllustrationName.Deafened, "Goblin Song", Array.Empty<Trait>(),
+                        (goblin, GoblinNoteIllustration, "Goblin Song", Array.Empty<Trait>(),
                                 "Attempt a Performance check against the Will DC of up to " + targets.ToString() + " enemy within 30 feet. This has all the usual traits and restrictions of a Performance check. " +
                                 "\r\nCritical Success The target takes a –1 status penalty to Perception checks and Will saves for 1 minute." +
                                 "\r\nSuccess The target takes a –1 status penalty to Perception checks and Will saves for 1 round." +
                                 "\r\nCritical Failure The target is temporarily immune to attempts to use Goblin Song for 1 hour.",
                                 targets)
                         .WithActionCost(1)
-                        .WithSoundEffect(SfxName.Intimidate)
+                        .WithSoundEffect(GoblinSongSoundEffect)
                         .WithActiveRollSpecification(new ActiveRollSpecification(Checks.SkillCheck(Skill.Performance), Checks.DefenseDC(Defense.Will)))
                         .WithEffectOnEachTarget(async (song, caster, target, result) =>
                         {
 
                             if (result is CheckResult.CriticalSuccess)
                             {
+                                target.QEffects.ForEach(effect =>
+                                {
+                                    if (effect.Name == "Goblin Song Success" || effect.Name == "Goblin Song Critical Success")
+                                    {
+                                        effect.ExpiresAt = ExpirationCondition.Immediately; //remove other goblin song effects
+                                    }
+                                });
                                 target.AddQEffect(new QEffect("Goblin Song Critical Success", "–1 status penalty to Perception checks and Will saves",
-                                    ExpirationCondition.CountsDownAtStartOfSourcesTurn, caster, IllustrationName.Deafened)
+                                    ExpirationCondition.CountsDownAtStartOfSourcesTurn, caster, GoblinNoteIllustration)
                                 {
                                     CountsAsADebuff = true,
                                     RoundsLeft = 6,
                                     BonusToDefenses = (qfSelf, incomingEffect, targetedDefense) =>
                                     {
-                                        if(targetedDefense == Defense.Will || targetedDefense == Defense.Perception)
+                                        if (targetedDefense == Defense.Will || targetedDefense == Defense.Perception)
                                         {
                                             return new Bonus(-1, BonusType.Status, "Goblin Song Critical Success");
                                         }
@@ -294,37 +315,40 @@ public static class GoblinAncestryLoader
                                         }
                                         return null;
                                     }
-                                    
+
 
                                 });
                             }
-                            
+
                             if (result is CheckResult.Success)
                             {
-                                target.AddQEffect(new QEffect("Goblin Song Success", "–1 status penalty to Perception checks and Will saves",
-                                    ExpirationCondition.CountsDownAtStartOfSourcesTurn, caster)
+                                if (!target.QEffects.Any(effect => effect.Name == "Goblin Song Success" || effect.Name == "Goblin Song Critical Success"))
                                 {
-                                    CountsAsADebuff = true,
-                                    RoundsLeft = 1,
-                                    BonusToDefenses = (qfSelf, incomingEffect, targetedDefense) =>
+                                    target.AddQEffect(new QEffect("Goblin Song Success", "–1 status penalty to Perception checks and Will saves",
+                                    ExpirationCondition.CountsDownAtStartOfSourcesTurn, caster, GoblinNoteIllustration)
                                     {
-                                        if (targetedDefense == Defense.Will || targetedDefense == Defense.Perception)
+                                        CountsAsADebuff = true,
+                                        RoundsLeft = 1,
+                                        BonusToDefenses = (qfSelf, incomingEffect, targetedDefense) =>
                                         {
-                                            return new Bonus(-1, BonusType.Status, "Goblin Song Success");
-                                        }
-                                        return null;
-                                    },
-                                    BonusToAttackRolls = (qfSelf, combatAction, target) =>
-                                    {
-                                        if (combatAction.HasTrait(Trait.Perception))
+                                            if (targetedDefense == Defense.Will || targetedDefense == Defense.Perception)
+                                            {
+                                                return new Bonus(-1, BonusType.Status, "Goblin Song Success");
+                                            }
+                                            return null;
+                                        },
+                                        BonusToAttackRolls = (qfSelf, combatAction, target) =>
                                         {
-                                            return new Bonus(-1, BonusType.Status, "Goblin Song Success");
+                                            if (combatAction.HasTrait(Trait.Perception))
+                                            {
+                                                return new Bonus(-1, BonusType.Status, "Goblin Song Success");
+                                            }
+                                            return null;
                                         }
-                                        return null;
-                                    }
 
 
-                                });
+                                    });
+                                }
                             }
                             if (result is CheckResult.CriticalFailure)
                             {
