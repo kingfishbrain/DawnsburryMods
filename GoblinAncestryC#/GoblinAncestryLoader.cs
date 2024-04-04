@@ -42,6 +42,11 @@ public static class GoblinAncestryLoader
 
     public static Trait GoblinTrait;
 
+
+    //Performance skill needed for Goblin Song
+    public static Feat Performance = new SkillSelectionFeat(FeatName.CustomFeat, Skill.Performance, Trait.Performance).WithCustomName("Performance");
+    public static Feat ExpertPerformance = new SkillIncreaseFeat(FeatName.CustomFeat, Skill.Performance, Trait.Performance).WithCustomName("Expert in Performance"); 
+
     [DawnsburyDaysModMainMethod]
     public static void LoadMod()
     {
@@ -49,6 +54,7 @@ public static class GoblinAncestryLoader
         GoblinNoteIllustration = File.Exists(@"..\CustomMods\GoblinAncestryResources\GoblinNote.png") ? new ModdedIllustration(@"GoblinAncestryResources\GoblinNote.png") : null;
 
         GoblinSongSoundEffect = ModManager.RegisterNewSoundEffect(@"GoblinAncestryResources\GoblinSong.mp3");
+
 
         GoblinTrait = ModManager.RegisterTrait(
             "Goblin",
@@ -59,6 +65,11 @@ public static class GoblinAncestryLoader
             {
                 IsAncestryTrait = true
             });
+
+        ModManager.AddFeat(Performance);
+        ModManager.AddFeat(ExpertPerformance);
+
+
         GoblinWeapons.RegisterWeapons();
         AddFeats(CreateGoblinAncestryFeats());
 
