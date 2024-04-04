@@ -30,6 +30,8 @@ using Dawnsbury.Core.Mechanics.Targeting.TargetingRequirements;
 using Dawnsbury.Core.Mechanics.Targeting.Targets;
 using Dawnsbury.Display.Illustrations;
 using Microsoft.Xna.Framework.Audio;
+using Dawnsbury.IO;
+using Dawnsbury.Core.CharacterBuilder.FeatsDb;
 
 namespace Dawnsbury.Mods.Ancestries.Goblin;
 
@@ -114,23 +116,27 @@ public static class GoblinAncestryLoader
         yield return new GoblinAncestryFeat("Bouncy Goblin",
                "You have a particular elasticity that makes it easy for you to bounce and squish. ",
                "You gain the trained proficiency rank in Acrobatics (or another skill of your choice, if you were already trained in Acrobatics). You also gain a +2 circumstance bonus to Acrobatics checks to Tumble Through a foe’s space.")
+           .WithPrerequisite(values => values.AllFeats.Any(feat => feat.Name.Equals("Unbreakable Goblin")), "You must be an Unbreakable Goblin.")
            .WithOnCreature(creature =>
            {
                creature.AddQEffect(new QEffect("Bouncy Goblin", "You have a 2+ bonus to Tumble Through.")
                {
-                   BonusToAttackRolls = (qfSelf, combatAction, defender) =>
+                   BonusToSkillChecks = (skill, combatAction, target) =>
                    {
-                       if (combatAction.ActionId == ActionId.TumbleThrough) return new Bonus(2, BonusType.Circumstance, "Bouncy Goblin");
+                       if (combatAction.Name == "Tumble Through")
+                       {
+                           return new Bonus(2, BonusType.Circumstance, "Bouncy Goblin");
+                       }
                        return null;
                    }
                });
-           }).WithPrerequisite(values => values.AllFeats.Any(feat => feat.Name.Equals("Unbreakable Goblin")), "You must be an Unbreakable Goblin.")
+           })
            .WithOnSheet(sheet =>
            {
 
                if (sheet.GetProficiency(Trait.Acrobatics) == Proficiency.Untrained)
                {
-                   sheet.SetProficiency(Trait.Acrobatics, Proficiency.Trained);
+                   sheet.AddFeat(AllFeats.All.Find(feat => feat.FeatName == FeatName.Acrobatics), null);                   
                }
                else
                {
