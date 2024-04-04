@@ -12,7 +12,8 @@ namespace Dawnsbury.Mods.Ancestries.Goblin;
         public static void RegisterWeapons()
         {
             ModManager.RegisterNewItemIntoTheShop("Boarslicer", itemName =>
-            new Item(itemName, IllustrationName.Dogslicer, "Boarslicer", 0, 3, Trait.Backstabber, Trait.Agile, Trait.Goblin, Trait.Finesse, Trait.Weapon, Trait.Homebrew, Trait.Martial, Trait.Sword)
-                .WithWeaponProperties(new WeaponProperties("1d8", DamageKind.Slashing)));
+            new Item(itemName, IllustrationName.Dogslicer, "Boarslicer", 0, 3, Trait.TwoHanded, Trait.Backstabber, Trait.Agile, GoblinAncestryLoader.GoblinTrait, Trait.Finesse, Trait.Weapon, Trait.Homebrew, Trait.Martial, Trait.Sword)
+                .WithWeaponProperties(new WeaponProperties("1d8", DamageKind.Slashing))
+                .WithDescription("Sometimes you need to slice something bigger than a dog."));
         }
     }

@@ -52,7 +52,10 @@ public static class GoblinAncestryLoader
 
         GoblinTrait = ModManager.RegisterTrait(
             "Goblin",
-            new TraitProperties("Goblin", true)
+            new TraitProperties("Goblin", true,
+            "A creature with this trait can be one of several kinds of creature, including goblins, hobgoblins, and bugbears. " +
+            "Goblins tend to have darkvision. An ability with this trait can be used or chosen only by goblins. " +
+            "A weapon with this trait is created and used by goblins.")
             {
                 IsAncestryTrait = true
             });
@@ -93,8 +96,8 @@ public static class GoblinAncestryLoader
                 "You gain access to all uncommon weapons with the goblin trait. You have familiarity with weapons with the goblin trait—for the purposes of proficiency, you treat any of these that are martial weapons as simple weapons and any that are advanced weapons as martial weapons.")
             .WithOnSheet(sheet =>
             {
-                sheet.Proficiencies.AddProficiencyAdjustment(traits => traits.Contains(Trait.Goblin) && traits.Contains(Trait.Martial), Trait.Simple);
-                sheet.Proficiencies.AddProficiencyAdjustment(traits => traits.Contains(Trait.Goblin) && traits.Contains(Trait.Advanced), Trait.Martial);
+                sheet.Proficiencies.AddProficiencyAdjustment(traits => traits.Contains(GoblinTrait) && traits.Contains(Trait.Martial), Trait.Simple);
+                sheet.Proficiencies.AddProficiencyAdjustment(traits => traits.Contains(GoblinTrait) && traits.Contains(Trait.Advanced), Trait.Martial);
             });
 
         yield return new GoblinAncestryFeat("Bouncy Goblin",
