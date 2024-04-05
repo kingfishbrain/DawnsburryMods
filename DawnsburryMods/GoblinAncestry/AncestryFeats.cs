@@ -31,7 +31,7 @@ namespace GoblinAncestry.GoblinAncestry
 
         public static IEnumerable<Feat> CreateGoblinAncestryFeats(Trait goblinTrait)
         {
-            GoblinNoteIllustration = File.Exists(@"..\CustomMods\GoblinAncestryResources\GoblinNote.png") ? new ModdedIllustration(@"GoblinAncestryResources\GoblinNote.png") : null;
+            GoblinNoteIllustration = new ModdedIllustration(@"GoblinAncestryResources\GoblinNote.png");
 
             GoblinSongSoundEffect = ModManager.RegisterNewSoundEffect(@"GoblinAncestryResources\GoblinSong.mp3");
 
