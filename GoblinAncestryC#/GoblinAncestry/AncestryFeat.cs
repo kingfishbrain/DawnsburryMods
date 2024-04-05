@@ -1,10 +1,10 @@
 ﻿using Dawnsbury.Core.CharacterBuilder.Feats;
 
-namespace GoblinAncestryC_.GoblinAncestry;
+namespace GoblinAncestry.GoblinAncestry;
 
-public class GoblinAncestryFeat : TrueFeat
+public class AncestryFeat : TrueFeat
 {
-    public GoblinAncestryFeat(string name, string flavorText, string rulesText)
+    public AncestryFeat(string name, string flavorText, string rulesText)
         : base(FeatName.CustomFeat, 1, flavorText, rulesText, new[]
         {
             GoblinAncestryLoader.GoblinTrait,

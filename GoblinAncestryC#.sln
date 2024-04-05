@@ -8,11 +8,14 @@ EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		GoblinAncestry|Any CPU = GoblinAncestry|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{24B792D5-2C72-4BAE-8C83-204D0F449890}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{24B792D5-2C72-4BAE-8C83-204D0F449890}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24B792D5-2C72-4BAE-8C83-204D0F449890}.GoblinAncestry|Any CPU.ActiveCfg = GoblinAncestry|Any CPU
+		{24B792D5-2C72-4BAE-8C83-204D0F449890}.GoblinAncestry|Any CPU.Build.0 = GoblinAncestry|Any CPU
 		{24B792D5-2C72-4BAE-8C83-204D0F449890}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{24B792D5-2C72-4BAE-8C83-204D0F449890}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection

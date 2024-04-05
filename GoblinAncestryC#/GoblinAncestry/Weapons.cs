@@ -6,8 +6,8 @@ using Dawnsbury.Core.Mechanics.Enumerations;
 using Dawnsbury.Core.Mechanics.Treasure;
 
 
-namespace GoblinAncestryC_.GoblinAncestry;
-public static class GoblinWeapons
+namespace GoblinAncestry.GoblinAncestry;
+public static class Weapons
 {
     public static void RegisterWeapons()
     {

@@ -2,9 +2,10 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0-windows</TargetFramework>
-    <RootNamespace>GoblinAncestryC_</RootNamespace>
+    <RootNamespace>DawnsburryMods</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Configurations>Debug;Release;GoblinAncestry</Configurations>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,8 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Licenses\" />
-    <Folder Include="Resources\" />
+    <Folder Include="GoblinAncestry\Licenses\" />
+    <Folder Include="GoblinAncestry\Resources\" />
   </ItemGroup>
 
 </Project>
