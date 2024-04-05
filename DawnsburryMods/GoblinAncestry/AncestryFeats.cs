@@ -210,8 +210,13 @@ namespace GoblinAncestry.GoblinAncestry
 
                 creature.AddQEffect(new QEffect("Goblin Song", "You can use Goblin Song against " + targets.ToString() + " enemies")
                 {
-                    ProvideMainAction = (qfSelf) =>
+                    ProvideActionIntoPossibilitySection = (qfSelf, possibilitySection) =>
                     {
+                        if (possibilitySection.PossibilitySectionId != PossibilitySectionId.OtherManeuvers)
+                    {
+                            return null;
+                        }
+
                         var goblin = qfSelf.Owner;
 
                         return new ActionPossibility(new CombatAction
