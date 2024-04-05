@@ -1,7 +1,6 @@
 ﻿using Dawnsbury.Core.CharacterBuilder.Feats;
-using Dawnsbury.Mods.Ancestries.Goblin;
 
-namespace Dawnsbury.Mods.Ancestries.Goblin;
+namespace GoblinAncestryC_.GoblinAncestry;
 
 public class GoblinAncestryFeat : TrueFeat
 {
@@ -13,7 +12,7 @@ public class GoblinAncestryFeat : TrueFeat
             // Trait.Ancestry
         })
     {
-        this.WithCustomName(name);
+        WithCustomName(name);
         // The following line is not needed -- because we registered the Kobold trait as an ancestry trait, the prerequisite is added automatically.
         // this.WithPrerequisite(sheet => sheet.Ancestries.Contains(KoboldAncestryLoader.KoboldTrait), "You must be a Kobold.");
     }

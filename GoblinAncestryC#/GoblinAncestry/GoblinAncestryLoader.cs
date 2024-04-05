@@ -18,11 +18,11 @@ using Dawnsbury.Core.Mechanics.Treasure;
 using Dawnsbury.Core.Possibilities;
 using Dawnsbury.Modding;
 using Dawnsbury.Core;
-using global::Dawnsbury.Core.CharacterBuilder.AbilityScores;
-using global::Dawnsbury.Core.CharacterBuilder.Feats;
-using global::Dawnsbury.Core.Creatures;
-using global::Dawnsbury.Core.Mechanics.Enumerations;
-using global::Dawnsbury.Modding;
+using Dawnsbury.Core.CharacterBuilder.AbilityScores;
+using Dawnsbury.Core.CharacterBuilder.Feats;
+using Dawnsbury.Core.Creatures;
+using Dawnsbury.Core.Mechanics.Enumerations;
+using Dawnsbury.Modding;
 using Microsoft.Xna.Framework.Graphics;
 using System.Text;
 using Dawnsbury.Core.Roller;
@@ -33,7 +33,7 @@ using Microsoft.Xna.Framework.Audio;
 using Dawnsbury.IO;
 using Dawnsbury.Core.CharacterBuilder.FeatsDb;
 
-namespace Dawnsbury.Mods.Ancestries.Goblin;
+namespace GoblinAncestryC_.GoblinAncestry;
 
 public static class GoblinAncestryLoader
 {
@@ -47,7 +47,7 @@ public static class GoblinAncestryLoader
 
     //Performance skill needed for Goblin Song
     public static Feat Performance = new SkillSelectionFeat(FeatName.CustomFeat, Skill.Performance, Trait.Performance).WithCustomName("Performance");
-    public static Feat ExpertPerformance = new SkillIncreaseFeat(FeatName.CustomFeat, Skill.Performance, Trait.Performance).WithCustomName("Expert in Performance"); 
+    public static Feat ExpertPerformance = new SkillIncreaseFeat(FeatName.CustomFeat, Skill.Performance, Trait.Performance).WithCustomName("Expert in Performance");
 
     [DawnsburyDaysModMainMethod]
     public static void LoadMod()
@@ -136,7 +136,7 @@ public static class GoblinAncestryLoader
 
                if (sheet.GetProficiency(Trait.Acrobatics) == Proficiency.Untrained)
                {
-                   sheet.AddFeat(AllFeats.All.Find(feat => feat.FeatName == FeatName.Acrobatics), null);                   
+                   sheet.AddFeat(AllFeats.All.Find(feat => feat.FeatName == FeatName.Acrobatics), null);
                }
                else
                {
@@ -163,7 +163,7 @@ public static class GoblinAncestryLoader
                {
                    BonusToDamage = (qfSelf, combatAction, defender) =>
                    {
-                       if (combatAction.HasTrait(Trait.Fire) && (combatAction.HasTrait(Trait.Spell)))
+                       if (combatAction.HasTrait(Trait.Fire) && combatAction.HasTrait(Trait.Spell))
                            return new Bonus(combatAction.SpellLevel / 2, BonusType.Status, "Burn It!");
                        return null;
 
@@ -172,7 +172,7 @@ public static class GoblinAncestryLoader
 
                };
 
- 
+
                goblin.AddQEffect(burnIt);
 
            }).WithPermanentQEffect("Increase persistant fire damage", qfBurnIt =>
@@ -182,7 +182,7 @@ public static class GoblinAncestryLoader
                    qfBurnItOnAnEnemy.YouAcquireQEffect = (qfBurnItOnAnEnemySelf, qfIncoming) =>
                    {
                        if (qfIncoming.Id == QEffectId.PersistentDamage && qfBurnIt.Owner.Battle.ActiveCreature == qfBurnIt.Owner
-                       && qfIncoming.Key == "PersistentDamage:Fire") 
+                       && qfIncoming.Key == "PersistentDamage:Fire")
                        {
                            return QEffect.PersistentDamage(qfIncoming.Name.Split(" ")[0] + "+1", DamageKind.Fire);
                        }
@@ -261,7 +261,7 @@ public static class GoblinAncestryLoader
                     if (target.QEffects.Any(effect => effect.Name == "Goblin Song Critical Failure"))
                     {
                         return Usability.NotUsableOnThisCreature("Target is immune due to a previous critically failed attempt at Goblin Song");
-                    } 
+                    }
 
 
                     return Usability.Usable;
@@ -484,7 +484,7 @@ public static class GoblinAncestryLoader
             if (effect.Owner.HasFreeHand)
                 return null; // do nothing -- will be handled by the normal Trip action
             var customTrip = Possibilities.CreateTrip(effect.Owner);
-            var customTripTarget = (customTrip.Target as CreatureTarget);
+            var customTripTarget = customTrip.Target as CreatureTarget;
             customTripTarget.CreatureTargetingRequirements.Clear();
             customTripTarget.CreatureTargetingRequirements.Add(new AdjacencyCreatureTargetingRequirement());
             customTripTarget.CreatureTargetingRequirements.Add(new EnemyCreatureTargetingRequirement());
