@@ -39,8 +39,8 @@ namespace GoblinAncestry.GoblinAncestry
                 .WithOnCreature((sheet, creature) =>
                 {
                     var resistanceValue = (creature.Level + 1) / 2;
-                    creature.AddQEffect(new QEffect("Snow",
-                            "You have cold resistance" +
+                    creature.AddQEffect(new QEffect("Snow Goblin",
+                            "You have cold resistance " +
                             resistanceValue + ".")
                     {
                         StateCheck = (qfSelf) =>
@@ -59,8 +59,8 @@ namespace GoblinAncestry.GoblinAncestry
                .WithOnCreature((sheet, creature) =>
                {
                    var resistanceValue = (creature.Level + 1) / 2;
-                   creature.AddQEffect(new QEffect("Charhide",
-                           "You have fire resistance" +
+                   creature.AddQEffect(new QEffect("Charhide Goblin",
+                           "You have fire resistance " +
                            resistanceValue + ".")
                    {
                        StateCheck = (qfSelf) =>
