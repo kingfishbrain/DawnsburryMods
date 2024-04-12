@@ -70,6 +70,31 @@ namespace DawnsburryMods.ClericRemastered
                     sheet.Proficiencies.AddProficiencyAdjustment(traits => traits.Contains(Trait.HeavyArmor), Trait.MediumArmor);
                 })
                 .WithPrerequisite(values => values.AllFeatNames.Contains(FeatName.Warpriest), "You must be a Warpriest.");
+
+            var EmblazonShield = ModManager.RegisterFeatName("Emblazon Shield");
+            yield return new TrueFeat(EmblazonShield, 2, "Carefully etching a sacred image into your shields, you steel yourself for battle. ",
+                "Your shields gain a +1 status bonus to their Hardness. (This causes it to reduce more damage with the Shield Block reaction.).",
+                new Trait[2] { Trait.Cleric, Trait.Homebrew})
+                .WithOnCreature(creature =>
+                {
+                    creature.AddQEffect(new QEffect("Emblazon Shield", "Your shields gain a +1 status bonus to their Hardness.") 
+                    { 
+                        StartOfCombat = (async (QEffect qSelf) =>
+                        {
+                            qSelf.Owner.HeldItems.ForEach(item =>
+                            {
+                                if (item.HasTrait(Trait.Shield)) item.Hardness += 1;
+                            });
+                            qSelf.Owner.CarriedItems.ForEach(item =>
+                            {
+                                if (item.HasTrait(Trait.Shield)) item.Hardness += 1;
+                            });
+                            
+                        }
+                        )
+                    }    
+                    );
+                });
         }
 
     }
