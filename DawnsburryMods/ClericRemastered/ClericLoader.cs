@@ -20,9 +20,10 @@ namespace DawnsburryMods.ClericRemastered
             AllFeats.All.RemoveAll(feat => feat.FeatName == FeatName.HealingFont);
             AllFeats.All.RemoveAll(feat => feat.FeatName == FeatName.HarmfulFont);
             LoadFonts().ForEach(feat => ModManager.AddFeat(feat)); //yooo it works
+            LoadClassFeats().ForEach(feat => ModManager.AddFeat(feat)); 
         }
 
-
+        //not relevant now but perhaps in the future?
         public static int Fonts(int level) =>
             level switch
             {
@@ -56,6 +57,18 @@ namespace DawnsburryMods.ClericRemastered
                     }
                 });
             }).WithIllustration(IllustrationName.Harm);
+        }
+
+        public static IEnumerable<Feat> LoadClassFeats()
+        {
+            var WarpriestArmor = ModManager.RegisterFeatName("Warpriest’s Armor");
+            yield return new TrueFeat(WarpriestArmor, 2, "Your training has helped you adapt to ever-heavier armor.",
+                "You are trained in heavy armor. Whenever you gain a class feature that grants you expert or greater proficiency in medium armor, you also gain that proficiency in heavy armor. ", 
+                new Trait[1] { Trait.Cleric })
+                .WithOnSheet(sheet =>
+                {
+                    sheet.Proficiencies.AddProficiencyAdjustment(traits => traits.Contains(Trait.HeavyArmor), Trait.MediumArmor);
+                });
         }
 
     }
