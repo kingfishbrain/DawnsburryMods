@@ -41,9 +41,10 @@ namespace GoblinAncestry.GoblinAncestry
 
             yield return new AncestryFeat("Goblin Weapon Familiarity",
                     "Others might look upon them with disdain, but you know that the weapons of your people are as effective as they are sharp. ",
-                    "You gain access to all uncommon weapons with the goblin trait. You have familiarity with weapons with the goblin trait—for the purposes of proficiency, you treat any of these that are martial weapons as simple weapons and any that are advanced weapons as martial weapons.")
+                    "You gain access to all uncommon weapons with the goblin trait. You have familiarity with weapons with the goblin trait (also applies to dogsclicer) — for the purposes of proficiency, you treat any of these that are martial weapons as simple weapons and any that are advanced weapons as martial weapons.")
                 .WithOnSheet(sheet =>
                 {
+                    sheet.Proficiencies.AddProficiencyAdjustment(traits => traits.Contains(Trait.Dogslicer), Trait.Simple);
                     sheet.Proficiencies.AddProficiencyAdjustment(traits => traits.Contains(goblinTrait) && traits.Contains(Trait.Martial), Trait.Simple);
                     sheet.Proficiencies.AddProficiencyAdjustment(traits => traits.Contains(goblinTrait) && traits.Contains(Trait.Advanced), Trait.Martial);
                 });
