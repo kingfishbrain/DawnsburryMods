@@ -68,7 +68,8 @@ namespace DawnsburryMods.ClericRemastered
                 .WithOnSheet(sheet =>
                 {
                     sheet.Proficiencies.AddProficiencyAdjustment(traits => traits.Contains(Trait.HeavyArmor), Trait.MediumArmor);
-                });
+                })
+                .WithPrerequisite(values => values.AllFeatNames.Contains(FeatName.Warpriest), "You must be a Warpriest.");
         }
 
     }
