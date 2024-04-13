@@ -95,6 +95,22 @@ namespace DawnsburryMods.ClericRemastered
                     }    
                     );
                 });
+            var EmblazonWeapon = ModManager.RegisterFeatName("Emblazon Weapon");
+            yield return new TrueFeat(EmblazonWeapon, 2, "Carefully etching a sacred image into your weapons, you steel yourself for battle. ",
+                "The wielder gains a +1 status bonus to damage rolls with your weapons.",
+                new Trait[2] { Trait.Cleric, Trait.Homebrew})
+                .WithOnCreature(creature =>
+                {
+                    creature.AddQEffect(new QEffect("Emblazon Weapons", "The wielder gains a +1 status bonus to damage rolls with your weapons.") 
+                    { 
+                        BonusToDamage = (qSelf, combatAction, target) =>
+                            {
+                                if (combatAction.HasTrait(Trait.Strike)) return new Bonus(1, BonusType.Status, "Emblazon Weapons", true);
+                                return null;
+                            }
+                    }    
+                    );
+                });
         }
 
     }
