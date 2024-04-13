@@ -77,7 +77,7 @@ namespace DawnsburryMods.ClericRemastered
             var EmblazonShieldName = ModManager.RegisterFeatName("Emblazon Shield");
             var EmblazonShield = new TrueFeat(EmblazonShieldName, 2, "Carefully etching a sacred image into your shields, you steel yourself for battle. ",
                 "Your shields gain a +1 status bonus to their Hardness. (This causes it to reduce more damage with the Shield Block reaction.).",
-                new Trait[1] {Trait.Homebrew})
+                new Trait[0] {})
                 .WithOnCreature(creature =>
                 {
                     creature.AddQEffect(new QEffect("Emblazon Shield", "Your shields gain a +1 status bonus to their Hardness.") 
@@ -101,7 +101,7 @@ namespace DawnsburryMods.ClericRemastered
             var EmblazonWeaponName = ModManager.RegisterFeatName("Emblazon Weapon");
             var EmblazonWeapon = new TrueFeat(EmblazonWeaponName, 2, "Carefully etching a sacred image into your weapons, you steel yourself for battle. ",
                 "The wielder gains a +1 status bonus to damage rolls with your weapons.",
-                new Trait[1] {Trait.Homebrew})
+                new Trait[0] {})
                 .WithOnCreature(creature =>
                 {
                     creature.AddQEffect(new QEffect("Emblazon Weapons", "The wielder gains a +1 status bonus to damage rolls with your weapons.") 
@@ -116,7 +116,73 @@ namespace DawnsburryMods.ClericRemastered
                 });
             var EmblazonArmaments = ModManager.RegisterFeatName("Emblazon Armaments");
             yield return new TrueFeat(EmblazonArmaments, 2, "Carefully etching a sacred image into a physical object, you steel yourself for battle.", 
-                "Choose if you want to emblazon your weapons or your shields.", new Trait[2] { Trait.Cleric, Trait.Homebrew },  new List<Feat>() {EmblazonWeapon, EmblazonShield} );
+                "Choose if you want to emblazon your weapons or your shields.", new Trait[1] { Trait.Cleric},  new List<Feat>() {EmblazonWeapon, EmblazonShield} );
+
+            var RaiseSymbol = ModManager.RegisterFeatName("Raise Symbol");
+
+            var RaisingSymbol = new QEffect("Raising Symbol", "You gain a +2 circumstance bonus to saving throws until the start of your next turn." +
+                                    "While it’s raised, if you roll a success at a saving throw against a positive or negative effect, you get a critical success instead.",
+                                    ExpirationCondition.CountsDownAtStartOfSourcesTurn, null, null)
+            {
+                RoundsLeft = 1,
+                CountsAsABuff = true,
+                AdjustSavingThrowResult = (qSelf, combatAction, result) =>
+                {
+                    if ((combatAction.HasTrait(Trait.Positive) || combatAction.HasTrait(Trait.Negative)) && result == CheckResult.Success) return CheckResult.CriticalSuccess;
+                    return result;
+                },
+                BonusToDefenses = (qSelf, combatAction, defense) =>
+                {
+                    if (defense == Defense.Reflex || defense == Defense.Will || defense == Defense.Fortitude) return new Bonus(2, BonusType.Circumstance, "Raise Symbol");
+                    return null;
+                }
+            };
+
+            yield return new TrueFeat(RaiseSymbol, 4,"You present your religious symbol emphatically.",
+                "You gain a +2 circumstance bonus to saving throws until the start of your next turn. " +
+                "While it’s raised, if you roll a success at a saving throw against a positive or negative effect, you get a critical success instead." +
+                "If you're wielding a shield and you have the Emblazon Shield feat, you gain the effects of Raise a Shield when you use this action and the effects of this action when you Raise a Shield."
+                , new Trait[1] { Trait.Cleric })
+                .WithActionCost(1)
+                .WithOnCreature(creature =>
+                {
+                    creature.AddQEffect(new QEffect()
+                    {
+                        ProvideMainAction = (qSelf) =>
+                        {
+                            return new ActionPossibility(new CombatAction
+                            (creature, IllustrationName.DivineLance, "Raise Symbol", Array.Empty<Trait>(),
+                                "You gain a +2 circumstance bonus to saving throws until the start of your next turn. " +
+                                "While it’s raised, if you roll a success at a saving throw against a positive or negative effect, you get a critical success instead." +
+                                "If you're wielding a shield and you have the Emblazon Shield feat, you gain the effects of Raise a Shield when you use this action and the effects of this action when you Raise a Shield.",
+                                    Target.Self())
+                            .WithActionCost(1)
+                            .WithEffectOnSelf(async (self) =>
+                            {
+                                self.AddQEffect(RaisingSymbol);
+                            })
+                            );
+
+                        }
+
+                    });
+                    if (creature.HasFeat(EmblazonShieldName)) {
+                        creature.AddQEffect(new QEffect()
+                        {
+                            YouAcquireQEffect = (qSelf, qAdded) =>
+                            {
+                                var owner = qSelf.Owner;
+                                if (qAdded.Id == QEffectId.RaisingAShield) owner.AddQEffect(RaisingSymbol);
+                                bool shieldBlock = owner.HasFeat(FeatName.ShieldBlock);
+                                bool wieldsShield = owner.WieldsItem(Trait.Shield);
+                                if (qAdded.Name == "Raising Symbol" && wieldsShield) owner.AddQEffect(QEffect.RaisingAShield(shieldBlock));
+                                return qAdded;
+
+                            }
+                        });
+                    }
+
+                });
         }
 
     }
