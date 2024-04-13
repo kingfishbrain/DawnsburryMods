@@ -4,11 +4,14 @@ using Dawnsbury.Core.Mechanics.Enumerations;
 using Dawnsbury.Modding;
 using Dawnsbury.Core.CharacterBuilder.FeatsDb;
 using Dawnsbury.Core.CharacterBuilder.FeatsDb.TrueFeatDb;
+using Dawnsbury.Core.Mechanics;
 using Dawnsbury.Core.CharacterBuilder;
 using Dawnsbury.Core;
 using Dawnsbury.Core.CharacterBuilder.FeatsDb.Spellbook;
 using Dawnsbury.Core.CharacterBuilder.Spellcasting;
 using Dawnsbury.Auxiliary;
+using Dawnsbury.Core.CombatActions;
+using Dawnsbury.Core.Mechanics.Core;
 
 namespace DawnsburryMods.ClericRemastered
 {
@@ -71,10 +74,10 @@ namespace DawnsburryMods.ClericRemastered
                 })
                 .WithPrerequisite(values => values.AllFeatNames.Contains(FeatName.Warpriest), "You must be a Warpriest.");
 
-            var EmblazonShield = ModManager.RegisterFeatName("Emblazon Shield");
-            yield return new TrueFeat(EmblazonShield, 2, "Carefully etching a sacred image into your shields, you steel yourself for battle. ",
+            var EmblazonShieldName = ModManager.RegisterFeatName("Emblazon Shield");
+            var EmblazonShield = new TrueFeat(EmblazonShieldName, 2, "Carefully etching a sacred image into your shields, you steel yourself for battle. ",
                 "Your shields gain a +1 status bonus to their Hardness. (This causes it to reduce more damage with the Shield Block reaction.).",
-                new Trait[2] { Trait.Cleric, Trait.Homebrew})
+                new Trait[1] {Trait.Homebrew})
                 .WithOnCreature(creature =>
                 {
                     creature.AddQEffect(new QEffect("Emblazon Shield", "Your shields gain a +1 status bonus to their Hardness.") 
@@ -95,10 +98,10 @@ namespace DawnsburryMods.ClericRemastered
                     }    
                     );
                 });
-            var EmblazonWeapon = ModManager.RegisterFeatName("Emblazon Weapon");
-            yield return new TrueFeat(EmblazonWeapon, 2, "Carefully etching a sacred image into your weapons, you steel yourself for battle. ",
+            var EmblazonWeaponName = ModManager.RegisterFeatName("Emblazon Weapon");
+            var EmblazonWeapon = new TrueFeat(EmblazonWeaponName, 2, "Carefully etching a sacred image into your weapons, you steel yourself for battle. ",
                 "The wielder gains a +1 status bonus to damage rolls with your weapons.",
-                new Trait[2] { Trait.Cleric, Trait.Homebrew})
+                new Trait[1] {Trait.Homebrew})
                 .WithOnCreature(creature =>
                 {
                     creature.AddQEffect(new QEffect("Emblazon Weapons", "The wielder gains a +1 status bonus to damage rolls with your weapons.") 
@@ -111,6 +114,9 @@ namespace DawnsburryMods.ClericRemastered
                     }    
                     );
                 });
+            var EmblazonArmaments = ModManager.RegisterFeatName("Emblazon Armaments");
+            yield return new TrueFeat(EmblazonArmaments, 2, "Carefully etching a sacred image into a physical object, you steel yourself for battle.", 
+                "Choose if you want to emblazon your weapons or your shields.", new Trait[2] { Trait.Cleric, Trait.Homebrew },  new List<Feat>() {EmblazonWeapon, EmblazonShield} );
         }
 
     }
