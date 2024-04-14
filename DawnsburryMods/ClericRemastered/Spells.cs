@@ -36,7 +36,7 @@ namespace DawnsburryMods.ClericRemastered
                 return blessbane(false, IllustrationName.Bane, level);
             });
         }
-
+        //this is mostly decompiled code from the actual bless/bane implemantation, so it doesn't quite make human sense 
         private static CombatAction blessbane(bool isBless, IllustrationName illustration, int level)
         {
             return Spells.CreateModern(illustration, isBless ? "Bless" : "Bane", new Trait[4]
