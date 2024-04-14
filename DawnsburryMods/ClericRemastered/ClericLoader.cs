@@ -12,6 +12,8 @@ using Dawnsbury.Core.CharacterBuilder.Spellcasting;
 using Dawnsbury.Auxiliary;
 using Dawnsbury.Core.CombatActions;
 using Dawnsbury.Core.Mechanics.Core;
+using Dawnsbury.Core.Mechanics.Targeting;
+using Dawnsbury.Core.Possibilities;
 
 namespace DawnsburryMods.ClericRemastered
 {
@@ -77,7 +79,7 @@ namespace DawnsburryMods.ClericRemastered
             var EmblazonShieldName = ModManager.RegisterFeatName("Emblazon Shield");
             var EmblazonShield = new TrueFeat(EmblazonShieldName, 2, "Carefully etching a sacred image into your shields, you steel yourself for battle. ",
                 "Your shields gain a +1 status bonus to their Hardness. (This causes it to reduce more damage with the Shield Block reaction.).",
-                new Trait[0] {})
+                new Trait[0] { })
                 .WithOnCreature(creature =>
                 {
                     creature.AddQEffect(new QEffect("Emblazon Shield", "Your shields gain a +1 status bonus to their Hardness.") 
@@ -101,7 +103,7 @@ namespace DawnsburryMods.ClericRemastered
             var EmblazonWeaponName = ModManager.RegisterFeatName("Emblazon Weapon");
             var EmblazonWeapon = new TrueFeat(EmblazonWeaponName, 2, "Carefully etching a sacred image into your weapons, you steel yourself for battle. ",
                 "The wielder gains a +1 status bonus to damage rolls with your weapons.",
-                new Trait[0] {})
+                new Trait[0] { })
                 .WithOnCreature(creature =>
                 {
                     creature.AddQEffect(new QEffect("Emblazon Weapons", "The wielder gains a +1 status bonus to damage rolls with your weapons.") 
@@ -116,13 +118,23 @@ namespace DawnsburryMods.ClericRemastered
                 });
             var EmblazonArmaments = ModManager.RegisterFeatName("Emblazon Armaments");
             yield return new TrueFeat(EmblazonArmaments, 2, "Carefully etching a sacred image into a physical object, you steel yourself for battle.", 
-                "Choose if you want to emblazon your weapons or your shields.", new Trait[1] { Trait.Cleric},  new List<Feat>() {EmblazonWeapon, EmblazonShield} );
+                "Choose if you want to emblazon your weapons or your shields.", new Trait[1] { Trait.Cleric }, new List<Feat>() { EmblazonWeapon, EmblazonShield });
+
+
+
 
             var RaiseSymbol = ModManager.RegisterFeatName("Raise Symbol");
-
+            yield return new TrueFeat(RaiseSymbol, 4, "You present your religious symbol emphatically.",
+                "You gain a +2 circumstance bonus to saving throws until the start of your next turn. " +
+                "While it’s raised, if you roll a success at a saving throw against a positive or negative effect, you get a critical success instead." +
+                "If you're wielding a shield and you have the Emblazon Shield feat, you gain the effects of Raise a Shield when you use this action and the effects of this action when you Raise a Shield."
+                , new Trait[1] { Trait.Cleric })
+                .WithActionCost(1)
+                .WithOnCreature(creature =>
+                {
             var RaisingSymbol = new QEffect("Raising Symbol", "You gain a +2 circumstance bonus to saving throws until the start of your next turn." +
                                     "While it’s raised, if you roll a success at a saving throw against a positive or negative effect, you get a critical success instead.",
-                                    ExpirationCondition.CountsDownAtStartOfSourcesTurn, null, null)
+                        ExpirationCondition.CountsDownAtStartOfSourcesTurn, creature, IllustrationName.Shield)
             {
                 RoundsLeft = 1,
                 CountsAsABuff = true,
@@ -150,6 +162,7 @@ namespace DawnsburryMods.ClericRemastered
                     {
                         ProvideMainAction = (qSelf) =>
                         {
+                            if (qSelf.Owner.QEffects.Contains(RaisingSymbol)) return null;
                             return new ActionPossibility(new CombatAction
                             (creature, IllustrationName.DivineLance, "Raise Symbol", Array.Empty<Trait>(),
                                 "You gain a +2 circumstance bonus to saving throws until the start of your next turn. " +
@@ -166,18 +179,17 @@ namespace DawnsburryMods.ClericRemastered
                         }
 
                     });
-                    if (creature.HasFeat(EmblazonShieldName)) {
+                    if (creature.HasFeat(EmblazonShieldName))
+                    {
                         creature.AddQEffect(new QEffect()
                         {
-                            YouAcquireQEffect = (qSelf, qAdded) =>
+                            AfterYouAcquireEffect = async(qSelf, qAdded) =>
                             {
                                 var owner = qSelf.Owner;
-                                if (qAdded.Id == QEffectId.RaisingAShield) owner.AddQEffect(RaisingSymbol);
+                                if (qAdded.Id == QEffectId.RaisingAShield && !owner.QEffects.Contains(RaisingSymbol)) owner.AddQEffect(RaisingSymbol);
                                 bool shieldBlock = owner.HasFeat(FeatName.ShieldBlock);
                                 bool wieldsShield = owner.WieldsItem(Trait.Shield);
-                                if (qAdded.Name == "Raising Symbol" && wieldsShield) owner.AddQEffect(QEffect.RaisingAShield(shieldBlock));
-                                return qAdded;
-
+                                if (qAdded.Name == "Raising Symbol" && wieldsShield && !owner.QEffects.Contains(QEffect.RaisingAShield(shieldBlock))) owner.AddQEffect(QEffect.RaisingAShield(shieldBlock));
                             }
                         });
                     }
