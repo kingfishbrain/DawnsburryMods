@@ -86,9 +86,22 @@ namespace DawnsburryMods.ClericRemastered
                 })
                 .WithPrerequisite(values => values.AllFeatNames.Contains(FeatName.Warpriest), "You must be a Warpriest.");
 
+
+
+            var EmblazonTrait = ModManager.RegisterTrait(
+                "Emblazoned",
+                new TraitProperties("Emblazoned", true,
+                    "A weapon or a shield that has a religious symbol etched onto it. " +
+                    "This weapon or shield has been emblazoned by the Emblazoned Armaments feat.")
+                {
+                    RelevantForShortBlock = true
+                });
+
             var EmblazonShieldName = ModManager.RegisterFeatName("Emblazon Shield");
-            var EmblazonShield = new TrueFeat(EmblazonShieldName, 2, "Carefully etching a sacred image into your shields, you steel yourself for battle. ",
-                "Your shields gain a +1 status bonus to their Hardness. (This causes it to reduce more damage with the Shield Block reaction.).",
+            var EmblazonShield = new TrueFeat(EmblazonShieldName, 2, "Carefully etching a sacred image into your shield, you steel yourself for battle. ",
+                "The symbol gets etched into the shield you hold in your right hand at the start of any combat (Make sure to always have a shield there!)." + 
+                "The symbol does not persist between combat encounters (Meaning you won't be able to have multiple shields with the symbol)." +
+                "This shield gains a +1 status bonus to its Hardness. (This causes it to reduce more damage with the Shield Block reaction.).",
                 new Trait[0] { })
                 .WithOnCreature(creature =>
                 {
@@ -96,31 +109,38 @@ namespace DawnsburryMods.ClericRemastered
                     {
                         StartOfCombat = (async (QEffect qSelf) =>
                         {
-                            qSelf.Owner.HeldItems.ForEach(item =>
+                            var shield = qSelf.Owner.SecondaryItem;
+                            if (shield.HasTrait(Trait.Shield))
                             {
-                                if (item.HasTrait(Trait.Shield)) item.Hardness += 1;
-                            });
-                            qSelf.Owner.CarriedItems.ForEach(item =>
-                            {
-                                if (item.HasTrait(Trait.Shield)) item.Hardness += 1;
-                            });
-
+                                shield.Traits.Add(EmblazonTrait);
+                                shield.Hardness += 1;
+                        }
                         }
                         )
                     }
                     );
                 });
             var EmblazonWeaponName = ModManager.RegisterFeatName("Emblazon Weapon");
-            var EmblazonWeapon = new TrueFeat(EmblazonWeaponName, 2, "Carefully etching a sacred image into your weapons, you steel yourself for battle. ",
-                "The wielder gains a +1 status bonus to damage rolls with your weapons.",
+            var EmblazonWeapon = new TrueFeat(EmblazonWeaponName, 2, "Carefully etching a sacred image into your weapon, you steel yourself for battle. ",
+                "The symbol gets etched into the weapon you hold in your left hand at the start of any combat (Make sure to always have a weapon there!). " +
+                "The symbol does not persist between combat encounters (Meaning you won't be able to have multiple weapons with the symbol). The wielder gains a +1 status bonus to damage rolls with this Weapon.",
                 new Trait[0] { })
                 .WithOnCreature(creature =>
                 {
                     creature.AddQEffect(new QEffect("Emblazon Weapons", "The wielder gains a +1 status bonus to damage rolls with your weapons.")
                     {
+                        StartOfCombat = (async (QEffect qSelf) =>
+                        {
+                            var weapon = qSelf.Owner.PrimaryItem;
+                            if (weapon.HasTrait(Trait.Weapon))
+                            {
+                                weapon.Traits.Add(EmblazonTrait);
+                            }
+                        }),
+
                         BonusToDamage = (qSelf, combatAction, target) =>
                             {
-                                if (combatAction.HasTrait(Trait.Strike)) return new Bonus(1, BonusType.Status, "Emblazon Weapons", true);
+                            if (combatAction.HasTrait(Trait.Strike) && combatAction.Item.HasTrait(EmblazonTrait)) return new Bonus(1, BonusType.Status, "Emblazon Weapons", true);
                                 return null;
                             }
                     }
@@ -142,7 +162,7 @@ namespace DawnsburryMods.ClericRemastered
                 .WithActionCost(1)
                 .WithOnCreature(creature =>
                 {
-                    var RaisingSymbol = new QEffect("Raising Symbol {icon:OneAction}", "You gain a +2 circumstance bonus to saving throws until the start of your next turn." +
+                    var RaisingSymbol = new QEffect("Raising Symbol", "You gain a +2 circumstance bonus to saving throws until the start of your next turn." +
                         "While it’s raised, if you roll a success at a saving throw against a positive or negative effect, you get a critical success instead.",
                         ExpirationCondition.CountsDownAtStartOfSourcesTurn, creature, IllustrationName.Shield)
                     {
@@ -169,7 +189,7 @@ namespace DawnsburryMods.ClericRemastered
                             (creature, IllustrationName.DivineLance, "Raise Symbol", Array.Empty<Trait>(),
                                 "You gain a +2 circumstance bonus to saving throws until the start of your next turn. " +
                                 "While it’s raised, if you roll a success at a saving throw against a positive or negative effect, you get a critical success instead." +
-                                "If you're wielding a shield and you have the Emblazon Shield feat, you gain the effects of Raise a Shield when you use this action and the effects of this action when you Raise a Shield.",
+                                "If you're wielding an emblazoned shield and you have the Emblazon Shield feat, you gain the effects of Raise a Shield when you use this action and the effects of this action when you Raise a Shield.",
                                     Target.Self())
                             .WithActionCost(1)
                             .WithEffectOnSelf(async (self) =>
@@ -188,10 +208,11 @@ namespace DawnsburryMods.ClericRemastered
                             AfterYouAcquireEffect = async (qSelf, qAdded) =>
                             {
                                 var owner = qSelf.Owner;
-                                if (qAdded.Id == QEffectId.RaisingAShield && !owner.QEffects.Contains(RaisingSymbol)) owner.AddQEffect(RaisingSymbol);
+                                bool wieldsEmblazonedShield = owner.HeldItems.Any(item => item.HasTrait(Trait.Shield) && item.HasTrait(EmblazonTrait));
+                                if (qAdded.Id == QEffectId.RaisingAShield && !owner.QEffects.Contains(RaisingSymbol) && wieldsEmblazonedShield) owner.AddQEffect(RaisingSymbol);
                                 bool shieldBlock = owner.HasFeat(FeatName.ShieldBlock);
-                                bool wieldsShield = owner.WieldsItem(Trait.Shield);
-                                if (qAdded.Name == "Raising Symbol" && wieldsShield && !owner.QEffects.Contains(QEffect.RaisingAShield(shieldBlock))) owner.AddQEffect(QEffect.RaisingAShield(shieldBlock));
+                              //  GeneralLog.Log("Gets here and shield is: " + wieldsEmblazonedShield.ToString());
+                                if (qAdded.Name == "Raising Symbol" && wieldsEmblazonedShield && !owner.QEffects.Contains(QEffect.RaisingAShield(shieldBlock))) owner.AddQEffect(QEffect.RaisingAShield(shieldBlock));
                             }
                         });
                     }
