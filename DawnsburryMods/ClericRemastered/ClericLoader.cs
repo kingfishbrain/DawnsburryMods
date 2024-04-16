@@ -239,17 +239,15 @@ namespace DawnsburryMods.ClericRemastered
                             {
                                 bool holyCastigation = attacker?.HasEffect(QEffectId.HolyCastigation) ?? false;
                                 bool isHeal = (spell.Name == "Heal");
-                                /*
-                                 *  TO DO
-                                 */ 
-                                return Usability.Usable; 
+                                if(isHeal && target.IsLivingCreature && (!holyCastigation || !target.HasTrait(Trait.Fiend))) return Usability.NotUsableOnThisCreature("Target would be healed by strike.");
+                                return (!isHeal && target.HasTrait(Trait.Undead))? Usability.NotUsableOnThisCreature("Target would be healed by strike.") : Usability.Usable;
                             });
                             strike.StrikeModifiers.OnEachTarget = async delegate (Creature striker, Creature target, CheckResult result)
                             {
                                 striker.Spellcasting!.UseUpSpellcastingResources(spell);
                                 if (result >= CheckResult.Success)
                                 {
-                                    result = (result == CheckResult.Success)? CheckResult.Failure : CheckResult.CriticalFailure; //harm is a saving throw so an attack success means a failed saving throw
+                                    result = (result == CheckResult.Success) ? CheckResult.Failure : CheckResult.CriticalFailure; //harm is a saving throw so an attack success means a failed saving throw
                                     if (spell.EffectOnOneTarget != null)
                                     {
                                         await spell.EffectOnOneTarget!(spell, striker, target, result);
@@ -266,7 +264,7 @@ namespace DawnsburryMods.ClericRemastered
                                 }
 
                             };
-                            strike.Description = StrikeRules.CreateBasicStrikeDescription(strike.StrikeModifiers, null, "The success effect of " + spell.Name  +"(" + spell.SpellLevel  + ")" + " is inflicted upon the target.", "Critical spell effect.", null);
+                            strike.Description = StrikeRules.CreateBasicStrikeDescription(strike.StrikeModifiers, null, "The success effect of " + spell.Name + "(" + spell.SpellLevel + ")" + " is inflicted upon the target.", "Critical spell effect.", null);
                             return strike;
                         }
                         SubmenuPossibility CreateSpellcastingMenu(string caption, Func<CombatAction, CombatAction?> spellTransformation)
