@@ -35,8 +35,6 @@ namespace DawnsburryMods.ClericRemastered
             LoadFonts().ForEach(feat => ModManager.AddFeat(feat)); //yooo it works
 
             LoadClassFeats().ForEach(feat => ModManager.AddFeat(feat));
-            adjustSpells.addSpells();
-
         }
 
         //not relevant now but perhaps in the future?
