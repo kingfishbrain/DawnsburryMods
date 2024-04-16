@@ -21,6 +21,7 @@ using static Dawnsbury.Core.CharacterBuilder.FeatsDb.TrueFeatDb.BarbarianFeatsDb
 using Dawnsbury.Core.Mechanics.Targeting.Targets;
 using Dawnsbury.Core.CharacterBuilder.FeatsDb.Spellbook;
 using Dawnsbury.Core.Mechanics.Rules;
+using Dawnsbury.IO;
 
 namespace DawnsburryMods.ClericRemastered
 {
@@ -99,7 +100,7 @@ namespace DawnsburryMods.ClericRemastered
 
             var EmblazonShieldName = ModManager.RegisterFeatName("Emblazon Shield");
             var EmblazonShield = new TrueFeat(EmblazonShieldName, 2, "Carefully etching a sacred image into your shield, you steel yourself for battle. ",
-                "The symbol gets etched into the shield you hold in your right hand at the start of any combat (Make sure to always have a shield there!)." + 
+                "The symbol gets etched into the shield you hold in your right hand at the start of any combat (Make sure to always have a shield there!)." +
                 "The symbol does not persist between combat encounters (Meaning you won't be able to have multiple shields with the symbol)." +
                 "This shield gains a +1 status bonus to its Hardness. (This causes it to reduce more damage with the Shield Block reaction.).",
                 new Trait[0] { })
@@ -114,7 +115,7 @@ namespace DawnsburryMods.ClericRemastered
                             {
                                 shield.Traits.Add(EmblazonTrait);
                                 shield.Hardness += 1;
-                        }
+                            }
                         }
                         )
                     }
@@ -139,10 +140,10 @@ namespace DawnsburryMods.ClericRemastered
                         }),
 
                         BonusToDamage = (qSelf, combatAction, target) =>
-                            {
+                        {
                             if (combatAction.HasTrait(Trait.Strike) && combatAction.Item.HasTrait(EmblazonTrait)) return new Bonus(1, BonusType.Status, "Emblazon Weapons", true);
-                                return null;
-                            }
+                            return null;
+                        }
                     }
                     );
                 });
@@ -211,7 +212,7 @@ namespace DawnsburryMods.ClericRemastered
                                 bool wieldsEmblazonedShield = owner.HeldItems.Any(item => item.HasTrait(Trait.Shield) && item.HasTrait(EmblazonTrait));
                                 if (qAdded.Id == QEffectId.RaisingAShield && !owner.QEffects.Contains(RaisingSymbol) && wieldsEmblazonedShield) owner.AddQEffect(RaisingSymbol);
                                 bool shieldBlock = owner.HasFeat(FeatName.ShieldBlock);
-                              //  GeneralLog.Log("Gets here and shield is: " + wieldsEmblazonedShield.ToString());
+                                //  GeneralLog.Log("Gets here and shield is: " + wieldsEmblazonedShield.ToString());
                                 if (qAdded.Name == "Raising Symbol" && wieldsEmblazonedShield && !owner.QEffects.Contains(QEffect.RaisingAShield(shieldBlock))) owner.AddQEffect(QEffect.RaisingAShield(shieldBlock));
                             }
                         });
@@ -260,8 +261,8 @@ namespace DawnsburryMods.ClericRemastered
                             {
                                 bool holyCastigation = attacker?.HasEffect(QEffectId.HolyCastigation) ?? false;
                                 bool isHeal = (spell.Name == "Heal");
-                                if(isHeal && target.IsLivingCreature && (!holyCastigation || !target.HasTrait(Trait.Fiend))) return Usability.NotUsableOnThisCreature("Target would be healed by strike.");
-                                return (!isHeal && target.HasTrait(Trait.Undead))? Usability.NotUsableOnThisCreature("Target would be healed by strike.") : Usability.Usable;
+                                if (isHeal && target.IsLivingCreature && (!holyCastigation || !target.HasTrait(Trait.Fiend))) return Usability.NotUsableOnThisCreature("Target would be healed by strike.");
+                                return (!isHeal && target.HasTrait(Trait.Undead)) ? Usability.NotUsableOnThisCreature("Target would be healed by strike.") : Usability.Usable;
                             });
                             strike.StrikeModifiers.OnEachTarget = async delegate (Creature striker, Creature target, CheckResult result)
                             {
@@ -269,19 +270,8 @@ namespace DawnsburryMods.ClericRemastered
                                 if (result >= CheckResult.Success)
                                 {
                                     result = (result == CheckResult.Success) ? CheckResult.Failure : CheckResult.CriticalFailure; //harm is a saving throw so an attack success means a failed saving throw
-                                    if (spell.EffectOnOneTarget != null)
-                                    {
-                                        await spell.EffectOnOneTarget!(spell, striker, target, result);
-                                    }
-
-                                    if (spell.EffectOnChosenTargets != null)
-                                    {
-                                        await spell.EffectOnChosenTargets!(spell, striker, new ChosenTargets
-                                        {
-                                            ChosenCreature = target,
-                                            ChosenCreatures = { target }
-                                        });
-                                    }
+                                    await spell.EffectOnOneTarget!(spell, striker, target, result);
+                                    
                                 }
 
                             };
@@ -333,6 +323,135 @@ namespace DawnsburryMods.ClericRemastered
                     };
                     creature.AddQEffect(channelSmite);
                 });
+
+            var RestorativeStrike = ModManager.RegisterFeatName("Restorative Strike");
+            yield return new TrueFeat(RestorativeStrike, 4, "You balance both sides of the scales, restoring yourself while striking a foe.",
+                "Requirements: You have a heal spell you can cast\r\n" +
+                "Cast a 1-action heal spell to heal yourself, expending the spell normally. It loses the manipulate trait when cast this way. Then make a melee Strike. " +
+                "If you make this Strike with your deity’s favored weapon, you gain a +1 status bonus to the attack roll.\n" +
+                "If the Strike hits, you can target a second willing creature to heal the same amount from the spell. This creature can be outside of the spell’s range, " +
+                "provided it’s adjacent to the enemy you hit. ",
+                new Trait[1] { Trait.Cleric })
+                .WithOnCreature(creature =>
+                {
+                    QEffect restorativeStrike = new QEffect("Restorative Strike {icon:TwoActions}", "You cast Heal and strike. On a hit you heal an ally too.");
+                    restorativeStrike.ProvideStrikeModifierAsPossibility = delegate (Item weapon)
+                    {
+                        if (!weapon.HasTrait(Trait.Melee))
+                        {
+                            return null;
+                        }
+                        Creature owner = restorativeStrike.Owner;
+
+                        CombatAction? createRestorativeStrike(CombatAction spell)
+                        {
+                            //if there are ever undead PCs consider checking for harm here
+                            if (spell.Name != "Heal")
+                            {
+                                return null;
+                            }
+                            spell.SpentActions = 1;
+                            CombatAction strike = owner.CreateStrike(weapon);
+                            strike.Name = spell.Name;
+                            strike.Illustration = new SideBySideIllustration(strike.Illustration, spell.Illustration);
+                            strike.Traits.AddRange(spell.Traits.Except(new Trait[5]
+                            {
+                                Trait.Ranged,
+                                Trait.Prepared,
+                                Trait.Spontaneous,
+                                Trait.Spell,
+                                Trait.Manipulate
+                            }));
+                            strike.Traits.Add(Trait.Basic);
+                            strike.ActionCost = 2;
+                            strike.StrikeModifiers.OnEachTarget = async delegate (Creature striker, Creature target, CheckResult result)
+                            {
+                                striker.Spellcasting!.UseUpSpellcastingResources(spell);
+
+                                int lastHp = striker.HP;
+                                await spell.EffectOnOneTarget!(spell, striker, striker, result);
+                                int healed = striker.HP - lastHp;
+
+                                if (result >= CheckResult.Success)
+                                {
+
+                                    var healExtra = new CombatAction(striker, IllustrationName.None, "Restorative Strike (on hit heal)", new Trait[1] { Trait.Positive },
+                                                  null,
+                                                  Target.RangedFriend(5).WithAdditionalConditionOnTargetCreature((caster, friend) =>
+                                                  {
+                                                      if(friend == caster) return Usability.NotUsable("Second heal can't be used on yourself.");
+                                                      if (friend.IsAdjacentTo(target) || friend.IsAdjacentTo(caster)) return Usability.Usable;
+                                                      return Usability.NotUsable("Not in range.");
+                                                  }));
+
+                                    healExtra = healExtra.WithEffectOnEachTarget(async (heal, caster, target, result) =>
+                                    {
+                                        target.Heal(healed.ToString(), spell);
+                                    });
+                                    await striker.Battle.GameLoop.FullCast(healExtra);
+                                }
+
+                            };
+                            strike.Description = StrikeRules.CreateBasicStrikeDescription(strike.StrikeModifiers, null, "You heal yourself and an ally.", null, null);
+                            return strike;
+                        }
+                        SubmenuPossibility CreateSpellcastingMenu(string caption, Func<CombatAction, CombatAction?> spellTransformation)
+                        {
+                            Func<CombatAction, CombatAction?> spellTransformation2 = spellTransformation;
+                            SubmenuPossibility castASpell = new SubmenuPossibility(new SideBySideIllustration(weapon.Illustration, IllustrationName.CastASpell), caption)
+                            {
+                                Subsections = new List<PossibilitySection>()
+                            };
+                            SpellcastingSource sourceByOrigin = owner.Spellcasting!.GetSourceByOrigin(Trait.Cleric);
+                            if ((sourceByOrigin.Kind == SpellcastingKind.Prepared || sourceByOrigin.Kind == SpellcastingKind.Innate) && sourceByOrigin.Spells.Count > 0)
+                            {
+                                for (int i = 1; i <= 10; i++)
+                                {
+                                    int levelJ2 = i;
+                                    AddSpellSubmenu("Level " + i, sourceByOrigin.Spells.Where((CombatAction sp) => sp.SpellLevel == levelJ2));
+                                }
+                            }
+                            return castASpell;
+                            void AddSpellSubmenu(string miniSectionCaption, IEnumerable<CombatAction> spells)
+                            {
+                                PossibilitySection possibilitySection = new PossibilitySection(miniSectionCaption);
+                                foreach (CombatAction spell in spells)
+                                {
+                                    CombatAction strike = spellTransformation2(spell);
+                                    if (strike != null)
+                                    {
+                                        string name = strike.Name;
+                                        strike.Name = "Restorative Strike (" + strike?.ToString() + ")";
+                                        possibilitySection.Possibilities.Add(new ActionPossibility(strike, PossibilitySize.Half)
+                                        {
+                                            Caption = name
+                                        });
+                                    }
+                                }
+
+                                if (possibilitySection.Possibilities.Count > 0)
+                                {
+                                    castASpell.Subsections.Add(possibilitySection);
+                                }
+                            }
+                        }
+                        return CreateSpellcastingMenu("Restorative Strike", new Func<CombatAction, CombatAction>(createRestorativeStrike));
+
+                    };
+                    restorativeStrike.BonusToAttackRolls = (qSelf, combatAction, target) =>
+                    {
+                        var deity = qSelf.Owner.PersistentCharacterSheet?.Calculated.Deity;
+                        var weapon = deity?.FavoredWeapon;
+                        bool isFavored = (weapon == combatAction?.Item?.BaseItemName) && (weapon != null);
+                        if (combatAction.Name.Contains("Restorative Strike") && isFavored) return new Bonus(1, BonusType.Status, combatAction.Name);
+                        return null;
+                    };
+                    creature.AddQEffect(restorativeStrike);
+                });
+
+
+
+
         }
 
     }
