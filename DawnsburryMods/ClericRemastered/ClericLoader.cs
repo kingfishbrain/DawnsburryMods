@@ -113,7 +113,7 @@ namespace DawnsburryMods.ClericRemastered
                         StartOfCombat = (async (QEffect qSelf) =>
                         {
                             var shield = qSelf.Owner.SecondaryItem;
-                            if (shield.HasTrait(Trait.Shield))
+                            if (shield?.HasTrait(Trait.Shield) == true)
                             {
                                 shield.Traits.Add(EmblazonTrait);
                                 shield.Hardness += 1;
@@ -135,7 +135,7 @@ namespace DawnsburryMods.ClericRemastered
                         StartOfCombat = (async (QEffect qSelf) =>
                         {
                             var weapon = qSelf.Owner.PrimaryItem;
-                            if (weapon.HasTrait(Trait.Weapon))
+                            if (weapon?.HasTrait(Trait.Weapon) == true)
                             {
                                 weapon.Traits.Add(EmblazonTrait);
                             }
