@@ -108,7 +108,7 @@ namespace DawnsburryMods.ClericRemastered
                 new Trait[0] { })
                 .WithOnCreature(creature =>
                 {
-                    creature.AddQEffect(new QEffect("Emblazon Shield", "Your shields gain a +1 status bonus to their Hardness.")
+                    creature.AddQEffect(new QEffect("Emblazon Shield", "Your emblazoned shield gains a +1 status bonus to its Hardness.")
                     {
                         StartOfCombat = (async (QEffect qSelf) =>
                         {
@@ -130,7 +130,7 @@ namespace DawnsburryMods.ClericRemastered
                 new Trait[0] { })
                 .WithOnCreature(creature =>
                 {
-                    creature.AddQEffect(new QEffect("Emblazon Weapons", "The wielder gains a +1 status bonus to damage rolls with your weapons.")
+                    creature.AddQEffect(new QEffect("Emblazon Weapon", "The wielder gains a +1 status bonus to damage rolls with the emblazoned weapon.")
                     {
                         StartOfCombat = (async (QEffect qSelf) =>
                         {
