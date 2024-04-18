@@ -384,7 +384,8 @@ namespace DawnsburryMods.ClericRemastered
                                                       if(friend == caster) return Usability.NotUsable("Second heal can't be used on yourself.");
                                                       if (friend.IsAdjacentTo(target) || friend.IsAdjacentTo(caster)) return Usability.Usable;
                                                       return Usability.NotUsable("Not in range.");
-                                                  }));
+                                                  }))
+                                                  .WithActionCost(0);
 
                                     healExtra = healExtra.WithEffectOnEachTarget(async (heal, caster, target, result) =>
                                     {
@@ -394,7 +395,7 @@ namespace DawnsburryMods.ClericRemastered
                                 }
 
                             };
-                            strike.Description = StrikeRules.CreateBasicStrikeDescription(strike.StrikeModifiers, null, "You heal yourself and an ally.", null, null);
+                            strike.Description = StrikeRules.CreateBasicStrikeDescription(strike.StrikeModifiers, null, "You heal yourself and on hit an ally for the same amount.", null, null);
                             return strike;
                         }
                         SubmenuPossibility CreateSpellcastingMenu(string caption, Func<CombatAction, CombatAction?> spellTransformation)

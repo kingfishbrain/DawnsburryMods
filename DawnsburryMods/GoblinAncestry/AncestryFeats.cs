@@ -23,7 +23,7 @@ namespace GoblinAncestry.GoblinAncestry
         public static Feat Performance = new SkillSelectionFeat(FeatName.CustomFeat, Skill.Performance, Trait.Performance).WithCustomName("Performance");
         public static Feat ExpertPerformance = new SkillIncreaseFeat(FeatName.CustomFeat, Skill.Performance, Trait.Performance).WithCustomName("Expert in Performance");
 
-
+        
 
         private static ModdedIllustration GoblinNoteIllustration;
 
@@ -214,7 +214,7 @@ namespace GoblinAncestry.GoblinAncestry
                     ProvideActionIntoPossibilitySection = (qfSelf, possibilitySection) =>
                     {
                         if (possibilitySection.PossibilitySectionId != PossibilitySectionId.OtherManeuvers)
-                    {
+                        {
                             return null;
                         }
 
