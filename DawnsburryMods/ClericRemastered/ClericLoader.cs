@@ -438,7 +438,6 @@ namespace DawnsburryMods.ClericRemastered
                     };
                     restorativeStrike.BonusToAttackRolls = (qSelf, combatAction, target) =>
                     {
-                        if (combatAction == null) return null;
                         var deity = qSelf.Owner.PersistentCharacterSheet?.Calculated.Deity;
                         var weapon = deity?.FavoredWeapon;
                         bool isFavored = (weapon == combatAction.Item?.BaseItemName) && (weapon != null);
