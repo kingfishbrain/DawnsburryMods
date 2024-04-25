@@ -1,13 +1,10 @@
-﻿using Dawnsbury.Core.CharacterBuilder.AbilityScores;
-using Dawnsbury.Core.CharacterBuilder.Feats;
+﻿using Dawnsbury.Core.CharacterBuilder.Feats;
 using Dawnsbury.Core.Mechanics.Enumerations;
 using Dawnsbury.Modding;
 using Dawnsbury.Core.CharacterBuilder.FeatsDb;
-using Dawnsbury.Core.CharacterBuilder.FeatsDb.TrueFeatDb;
 using Dawnsbury.Core.Mechanics;
 using Dawnsbury.Core.CharacterBuilder;
 using Dawnsbury.Core;
-using Dawnsbury.Core.CharacterBuilder.FeatsDb;
 using Dawnsbury.Core.CharacterBuilder.Spellcasting;
 using Dawnsbury.Auxiliary;
 using Dawnsbury.Core.CombatActions;
@@ -17,11 +14,9 @@ using Dawnsbury.Core.Possibilities;
 using Dawnsbury.Core.Mechanics.Treasure;
 using Dawnsbury.Core.Creatures;
 using Dawnsbury.Display.Illustrations;
-using static Dawnsbury.Core.CharacterBuilder.FeatsDb.TrueFeatDb.BarbarianFeatsDb.AnimalInstinctFeat;
 using Dawnsbury.Core.Mechanics.Targeting.Targets;
 using Dawnsbury.Core.CharacterBuilder.FeatsDb.Spellbook;
 using Dawnsbury.Core.Mechanics.Rules;
-using Dawnsbury.IO;
 
 namespace DawnsburryMods.ClericRemastered
 {
@@ -143,7 +138,7 @@ namespace DawnsburryMods.ClericRemastered
 
                         BonusToDamage = (qSelf, combatAction, target) =>
                         {
-                            if (combatAction.HasTrait(Trait.Strike) && combatAction.Item.HasTrait(EmblazonTrait)) return new Bonus(1, BonusType.Status, "Emblazon Weapons", true);
+                            if (combatAction.HasTrait(Trait.Strike) && combatAction.Item!.HasTrait(EmblazonTrait)) return new Bonus(1, BonusType.Status, "Emblazon Weapons", true);
                             return null;
                         }
                     }
@@ -287,7 +282,7 @@ namespace DawnsburryMods.ClericRemastered
                             {
                                 Subsections = new List<PossibilitySection>()
                             };
-                            SpellcastingSource sourceByOrigin = owner.Spellcasting!.GetSourceByOrigin(Trait.Cleric);
+                            SpellcastingSource sourceByOrigin = owner.Spellcasting!.GetSourceByOrigin(Trait.Cleric)!;
                             if ((sourceByOrigin.Kind == SpellcastingKind.Prepared || sourceByOrigin.Kind == SpellcastingKind.Innate) && sourceByOrigin.Spells.Count > 0)
                             {
                                 for (int i = 1; i <= 10; i++)
@@ -302,11 +297,11 @@ namespace DawnsburryMods.ClericRemastered
                                 PossibilitySection possibilitySection = new PossibilitySection(miniSectionCaption);
                                 foreach (CombatAction spell in spells)
                                 {
-                                    CombatAction strike = spellTransformation2(spell);
+                                    CombatAction? strike = spellTransformation2(spell);
                                     if (strike != null)
                                     {
                                         string name = strike.Name;
-                                        strike.Name = "Channel Smite (" + strike?.ToString() + ")";
+                                        strike.Name = "Channel Smite (" + strike.ToString() + ")";
                                         possibilitySection.Possibilities.Add(new ActionPossibility(strike, PossibilitySize.Half)
                                         {
                                             Caption = name
@@ -320,7 +315,7 @@ namespace DawnsburryMods.ClericRemastered
                                 }
                             }
                         }
-                        return CreateSpellcastingMenu("Channel Smite", new Func<CombatAction, CombatAction>(createChannelSmite));
+                        return CreateSpellcastingMenu("Channel Smite", createChannelSmite);
 
                     };
                     creature.AddQEffect(channelSmite);
@@ -378,7 +373,7 @@ namespace DawnsburryMods.ClericRemastered
                                 {
 
                                     var healExtra = new CombatAction(striker, IllustrationName.None, "Restorative Strike (on hit heal)", new Trait[1] { Trait.Positive },
-                                                  null,
+                                                  "",
                                                   Target.RangedFriend(5).WithAdditionalConditionOnTargetCreature((caster, friend) =>
                                                   {
                                                       if(friend == caster) return Usability.NotUsable("Second heal can't be used on yourself.");
@@ -405,7 +400,7 @@ namespace DawnsburryMods.ClericRemastered
                             {
                                 Subsections = new List<PossibilitySection>()
                             };
-                            SpellcastingSource sourceByOrigin = owner.Spellcasting!.GetSourceByOrigin(Trait.Cleric);
+                            SpellcastingSource sourceByOrigin = owner.Spellcasting!.GetSourceByOrigin(Trait.Cleric)!;
                             if ((sourceByOrigin.Kind == SpellcastingKind.Prepared || sourceByOrigin.Kind == SpellcastingKind.Innate) && sourceByOrigin.Spells.Count > 0)
                             {
                                 for (int i = 1; i <= 10; i++)
@@ -420,11 +415,11 @@ namespace DawnsburryMods.ClericRemastered
                                 PossibilitySection possibilitySection = new PossibilitySection(miniSectionCaption);
                                 foreach (CombatAction spell in spells)
                                 {
-                                    CombatAction strike = spellTransformation2(spell);
+                                    CombatAction? strike = spellTransformation2(spell);
                                     if (strike != null)
                                     {
                                         string name = strike.Name;
-                                        strike.Name = "Restorative Strike (" + strike?.ToString() + ")";
+                                        strike.Name = "Restorative Strike (" + strike.ToString() + ")";
                                         possibilitySection.Possibilities.Add(new ActionPossibility(strike, PossibilitySize.Half)
                                         {
                                             Caption = name
@@ -438,14 +433,14 @@ namespace DawnsburryMods.ClericRemastered
                                 }
                             }
                         }
-                        return CreateSpellcastingMenu("Restorative Strike", new Func<CombatAction, CombatAction>(createRestorativeStrike));
+                        return CreateSpellcastingMenu("Restorative Strike", createRestorativeStrike);
 
                     };
                     restorativeStrike.BonusToAttackRolls = (qSelf, combatAction, target) =>
                     {
                         var deity = qSelf.Owner.PersistentCharacterSheet?.Calculated.Deity;
                         var weapon = deity?.FavoredWeapon;
-                        bool isFavored = (weapon == combatAction?.Item?.BaseItemName) && (weapon != null);
+                        bool isFavored = (weapon == combatAction.Item?.BaseItemName) && (weapon != null);
                         if (combatAction.Name.Contains("Restorative Strike") && isFavored) return new Bonus(1, BonusType.Status, combatAction.Name);
                         return null;
                     };
