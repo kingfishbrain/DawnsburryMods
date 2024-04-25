@@ -180,6 +180,7 @@ namespace GoblinAncestry.GoblinAncestry
                 int targetCount = performance switch
                 {
                     Proficiency.Untrained => 1,
+                    Proficiency.UntrainedWithLevel => 1,
                     Proficiency.Trained => 1,
                     Proficiency.Expert => 2,
                     Proficiency.Master => 4,
