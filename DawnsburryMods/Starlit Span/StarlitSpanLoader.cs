@@ -23,6 +23,7 @@ namespace DawnsburryMods.Starlit_Span
         [DawnsburyDaysModMainMethod]
         public static void loadMod()
         {
+            SpellId shootingStarId = ShootingStar.loadShootingStar();
             ClassSelectionFeat magus = (AllFeats.All.Find(feat => feat.FeatName == FeatName.Magus) as ClassSelectionFeat)!;
             var starlitSpan = ModManager.RegisterFeatName("Hybrid Study: Starlit Span");
             magus.Subfeats!.Add(new Feat(starlitSpan, "With magic, the sky's the limit, and you can't be bound by the confines of physical proximity. " +
@@ -30,6 +31,12 @@ namespace DawnsburryMods.Starlit_Span
                 "When you use Spellstrike, you can make a ranged weapon or ranged unarmed Strike, as long as the target is within the first range increment of your ranged weapon or ranged unarmed attack. " +
                 "You can deliver the spell even if its range is shorter than the range increment of your ranged attack. \n" +
                 "Conflux Spell: Shooting Star", new List<Trait>(), null)
+                    .WithOnSheet(delegate (CalculatedCharacterSheetValues sheet)
+                    {
+                        sheet.FocusPointCount++;
+                        sheet.AddFocusSpellAndFocusPoint(Trait.Magus, Ability.Intelligence, shootingStarId);
+                    }
+                    )
                     .WithOnCreature(creature =>
                     {
                         creature.QEffects.ForEach(qeffect =>
