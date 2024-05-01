@@ -15,18 +15,31 @@ using Dawnsbury.Display.Illustrations;
 using Dawnsbury.Core.Mechanics.Targeting.Targets;
 using Dawnsbury.Core.Mechanics.Rules;
 using Dawnsbury.Audio;
+using Dawnsbury.Core.CharacterBuilder.Spellcasting;
+using Dawnsbury.Core.CharacterBuilder;
 
 namespace DawnsburryMods.Starlit_Span
 {
     public static class StarlitSpan
     {
+
+        static SpellId shootingStarId;
+        static FeatName starlitSpanName;
+
         [DawnsburyDaysModMainMethod]
         public static void loadMod()
         {
-            SpellId shootingStarId = ShootingStar.loadShootingStar();
+            shootingStarId = ShootingStar.loadShootingStar();
             ClassSelectionFeat magus = (AllFeats.All.Find(feat => feat.FeatName == FeatName.Magus) as ClassSelectionFeat)!;
-            var starlitSpan = ModManager.RegisterFeatName("Hybrid Study: Starlit Span");
-            magus.Subfeats!.Add(new Feat(starlitSpan, "With magic, the sky's the limit, and you can't be bound by the confines of physical proximity. " +
+            starlitSpanName = ModManager.RegisterFeatName("Hybrid Study: Starlit Span");
+            var starlitSpan = initStarlitSpan();
+            ModManager.AddFeat(starlitSpan);
+            magus.Subfeats!.Add(starlitSpan);
+        }
+
+        public static Feat initStarlitSpan()
+        {
+            return (new Feat(starlitSpanName, "With magic, the sky's the limit, and you can't be bound by the confines of physical proximity. " +
                 "Your power reaches as far as your senses can perceive, transcending the space between you and your target even with spells that normally require direct physical contact.",
                 "When you use Spellstrike, you can make a ranged weapon or ranged unarmed Strike, as long as the target is within the first range increment of your ranged weapon or ranged unarmed attack. " +
                 "You can deliver the spell even if its range is shorter than the range increment of your ranged attack. \n" +
@@ -41,7 +54,7 @@ namespace DawnsburryMods.Starlit_Span
                     {
                         creature.QEffects.ForEach(qeffect =>
                         {
-                            if (qeffect!.Name?.Contains("Spellstrike") == true)
+                            if (qeffect!.Name?.Contains("Spellstrike {icon:TwoActions}") == true)
                             {
                                 qeffect.ExpiresAt = ExpirationCondition.Immediately;
                             }
@@ -121,14 +134,12 @@ namespace DawnsburryMods.Starlit_Span
                             CombatAction? CreateSpellstrike(CombatAction spell)
                             {
                                 CombatAction spell2 = spell;
-                                if (spell2.Variants != null)
-                                {
-                                    return null;
-                                }
 
-                                if (spell2.SubspellVariants != null)
+
+                                if (spell2.SubspellVariants != null || spell2.Variants != null)
                                 {
-                                    return null;
+                                    spell2.ActionCost = 2;
+                                    spell2.SpentActions = 2;
                                 }
 
                                 if (spell2.ActionCost != 1 && spell2.ActionCost != 2)
@@ -144,9 +155,8 @@ namespace DawnsburryMods.Starlit_Span
                                 CombatAction combatAction4 = qfSpellstrike.Owner.CreateStrike(weapon2);
                                 combatAction4.Name = spell2.Name;
                                 combatAction4.Illustration = new SideBySideIllustration(combatAction4.Illustration, spell2.Illustration);
-                                combatAction4.Traits.AddRange(spell2.Traits.Except(new Trait[4]
+                                combatAction4.Traits.AddRange(spell2.Traits.Except(new Trait[3]
                                 {
-                            Trait.Ranged,
                             Trait.Prepared,
                             Trait.Spontaneous,
                             Trait.Spell
