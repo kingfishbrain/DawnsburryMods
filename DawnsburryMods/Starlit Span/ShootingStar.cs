@@ -35,6 +35,7 @@ namespace DawnsburryMods.Starlit_Span
                 var rangedWeapon = self.PrimaryItem;
                 if (!isRangedWeapon(rangedWeapon)) rangedWeapon = self.SecondaryItem;
                 if (!isRangedWeapon(rangedWeapon)) return Usability.NotUsable("You must be wielding a Ranged Weapon."); 
+                if (rangedWeapon!.EphemeralItemProperties.NeedsReload) return Usability.NotUsable("Weapon must be loaded.");
                 if (rangedWeapon!.WeaponProperties!.MaximumRange < self.DistanceTo(enemy)) return Usability.NotUsable("Enemy is out of your weapon's range.");
                 return Usability.Usable;
             }));
