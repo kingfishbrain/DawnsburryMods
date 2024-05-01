@@ -29,7 +29,7 @@ namespace DawnsburryMods.Starlit_Span
         public static SpellId loadShootingStar()
         {
             int arbitraryBigNumber = 300; //can't get the range of the weapon outside of .WithAdditionalConditionOnTargetCreature so this is used as a placeholder input
-            Target target = Target.Ranged(arbitraryBigNumber)
+            var target = Target.Ranged(arbitraryBigNumber)
                 .WithAdditionalConditionOnTargetCreature((Func<Creature, Creature, Usability>)((self, enemy) =>
             {
                 var rangedWeapon = self.PrimaryItem;
@@ -55,7 +55,8 @@ namespace DawnsburryMods.Starlit_Span
                     var rangedWeapon = caster.PrimaryItem;
                     if (!isRangedWeapon(rangedWeapon)) rangedWeapon = caster.SecondaryItem;
                     var strike = caster.CreateStrike(rangedWeapon!);
-                    await caster.Battle.GameLoop.FullCast(strike);
+                    strike.ChosenTargets = targets;
+                    await strike.WithActionCost(0).AllExecute();
                 })));
         }
 
