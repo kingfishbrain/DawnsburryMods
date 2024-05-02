@@ -1,41 +1,48 @@
-﻿using Dawnsbury.Core.CharacterBuilder.Feats;
-using Dawnsbury.Core.Mechanics.Enumerations;
-using Dawnsbury.Modding;
-using Dawnsbury.Core.CharacterBuilder.FeatsDb;
-using Dawnsbury.Core.Mechanics;
-using Dawnsbury.Core;
+﻿using Dawnsbury.Audio;
 using Dawnsbury.Auxiliary;
-using Dawnsbury.Core.CombatActions;
-using Dawnsbury.Core.Mechanics.Core;
-using Dawnsbury.Core.Mechanics.Targeting;
-using Dawnsbury.Core.Possibilities;
-using Dawnsbury.Core.Mechanics.Treasure;
-using Dawnsbury.Core.Creatures;
-using Dawnsbury.Display.Illustrations;
-using Dawnsbury.Core.Mechanics.Targeting.Targets;
-using Dawnsbury.Core.Mechanics.Rules;
-using Dawnsbury.Audio;
-using Dawnsbury.Core.CharacterBuilder.Spellcasting;
+using Dawnsbury.Core;
 using Dawnsbury.Core.CharacterBuilder;
+using Dawnsbury.Core.CharacterBuilder.Feats;
+using Dawnsbury.Core.CharacterBuilder.FeatsDb;
+using Dawnsbury.Core.CombatActions;
+using Dawnsbury.Core.Creatures;
+using Dawnsbury.Core.Mechanics;
+using Dawnsbury.Core.Mechanics.Core;
+using Dawnsbury.Core.Mechanics.Enumerations;
+using Dawnsbury.Core.Mechanics.Rules;
+using Dawnsbury.Core.Mechanics.Targeting;
+using Dawnsbury.Core.Mechanics.Targeting.Targets;
+using Dawnsbury.Core.Mechanics.Treasure;
+using Dawnsbury.Core.Possibilities;
+using Dawnsbury.Display.Illustrations;
+using Dawnsbury.Modding;
 
 namespace DawnsburryMods.Starlit_Span
 {
     public static class StarlitSpan
     {
 
-        static SpellId shootingStarId;
         static FeatName starlitSpanName;
 
         [DawnsburyDaysModMainMethod]
         public static void loadMod()
         {
-            shootingStarId = ShootingStar.loadShootingStar();
             ClassSelectionFeat magus = (AllFeats.All.Find(feat => feat.FeatName == FeatName.Magus) as ClassSelectionFeat)!;
             starlitSpanName = ModManager.RegisterFeatName("Hybrid Study: Starlit Span");
             var starlitSpan = initStarlitSpan();
             ModManager.AddFeat(starlitSpan);
             magus.Subfeats!.Add(starlitSpan);
         }
+
+        private static CoverKind reduceCover(CoverKind cover) =>
+            cover switch
+            {
+                CoverKind.Greater => CoverKind.Standard,
+                CoverKind.Standard => CoverKind.Lesser,
+                CoverKind.Lesser => CoverKind.None,
+                _ => cover
+            };
+
 
         public static Feat initStarlitSpan()
         {
@@ -46,10 +53,76 @@ namespace DawnsburryMods.Starlit_Span
                 "Conflux Spell: Shooting Star", new List<Trait>(), null)
                     .WithOnSheet(delegate (CalculatedCharacterSheetValues sheet)
                     {
-                        sheet.FocusPointCount++;
-                        sheet.AddFocusSpellAndFocusPoint(Trait.Magus, Ability.Intelligence, shootingStarId);
+                        sheet.FocusPointCount += 2;
                     }
                     )
+                    //adds shooting star as strike modifier
+                    .WithOnCreature(creature =>
+                    {
+                        var shootingStar = new QEffect("Shooting Star", "Focus Spell that reduces cover and removes concealment through a ranged strike");
+                        shootingStar.ProvideStrikeModifier = delegate (Item weapon)
+                        {
+                            if (!weapon.HasTrait(Trait.Ranged))
+                            {
+                                return null;
+                            }
+                            var owner = shootingStar.Owner;
+                            if (owner.Spellcasting!.FocusPoints <= 0)
+                            {
+                                return null;
+                            }
+                            var strike = owner.CreateStrike(weapon);
+                            strike.Name = "Shooting Star";
+                            strike.WithActionCost(1);
+                            strike.Illustration = new SideBySideIllustration(weapon.Illustration, IllustrationName.StarHit);
+                            strike.Traits.AddRange(new Trait[5]
+                                {
+                                    Trait.Divination,
+                                    Trait.Ranged,
+                                    Trait.Magus,
+                                    Trait.Spell,
+                                    Trait.UnaffectedByConcealment
+
+                                });
+                            strike.Description = "Make a ranged Strike, ignoring the target's concealment and reducing the target's cover by one degree for this Strike only (greater to standard, " +
+                                "standard to lesser, and lesser to none). If the Strike hits, the meteor trail hangs in the air. This gives the benefits of concealment negation and " +
+                                "cover reduction to any attacks made against the creature (by anyone) until the start of your next turn.";
+                            strike.StrikeModifiers.OnEachTarget = async delegate (Creature striker, Creature target, CheckResult result)
+                            {
+                                striker.Spellcasting!.FocusPoints--;
+                                if (result >= CheckResult.Success)
+                                {
+                                    var shootingStared = new QEffect("Shooting Star", "Any concealment is negated and cover counts as one step less", ExpirationCondition.CountsDownAtStartOfSourcesTurn, striker, IllustrationName.StarHit);
+                                    shootingStared.IncreaseCover = (qSelf, combatAction, cover) => //actually decreases cover here
+                                    {
+                                        combatAction.Traits.Add(Trait.UnaffectedByConcealment); // worried this might cause a combat action to have this trait for the rest of the battle but it seems fine?
+                                        if (combatAction.HasTrait(Trait.Attack)) return reduceCover(cover);
+                                        return cover;
+                                    };
+                                    
+                                    shootingStared.RoundsLeft = 1;
+                                    
+                                    target.AddQEffect(shootingStared);
+                                }
+
+                            };
+                            return strike;
+
+                        };
+                        shootingStar.AddGrantingOfTechnical(cr => cr.EnemyOf(shootingStar.Owner), qfGettingHitByShootingStar =>
+                        {
+                            qfGettingHitByShootingStar.IncreaseCover = (qSelf, combatAction, cover) => //actually decreases cover here
+                            {
+                                if (combatAction.Name == "Shooting Star") return reduceCover(cover);
+                                return cover;
+                            };
+                        
+                        });
+                        creature.AddQEffect(shootingStar);
+                    }
+                    )
+
+                    //replaces spell strike with ranged compatible spell strike
                     .WithOnCreature(creature =>
                     {
                         creature.QEffects.ForEach(qeffect =>
