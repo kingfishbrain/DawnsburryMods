@@ -52,8 +52,8 @@ namespace DawnsburryMods.Starlit_Span
             return (new Feat(starlitSpanName, "With magic, the sky's the limit, and you can't be bound by the confines of physical proximity. " +
                 "Your power reaches as far as your senses can perceive, transcending the space between you and your target even with spells that normally require direct physical contact.",
                 "When you use Spellstrike, you can make a ranged weapon or ranged unarmed Strike, as long as the target is within the first range increment of your ranged weapon or ranged unarmed attack. " +
-                "You can deliver the spell even if its range is shorter than the range increment of your ranged attack. \n" +
-                "Conflux Spell: Shooting Star" +
+                "You can deliver the spell even if its range is shorter than the range increment of your ranged attack. \n\n" +
+                "Conflux Spell: Shooting Star:\n" +
                 shootingStarDescription, new List<Trait>(), null)
                     .WithOnSheet(delegate (CalculatedCharacterSheetValues sheet)
                     {
@@ -235,11 +235,12 @@ namespace DawnsburryMods.Starlit_Span
                                 CombatAction combatAction4 = qfSpellstrike.Owner.CreateStrike(weapon2);
                                 combatAction4.Name = spell2.Name;
                                 combatAction4.Illustration = new SideBySideIllustration(combatAction4.Illustration, spell2.Illustration);
-                                combatAction4.Traits.AddRange(spell2.Traits.Except(new Trait[3]
+                                combatAction4.Traits.AddRange(spell2.Traits.Except(new Trait[4]
                                 {
                             Trait.Prepared,
                             Trait.Spontaneous,
-                            Trait.Spell
+                            Trait.Spell,
+                            Trait.Melee //stops yeeting animation from melee spells cast through a ranged weapon
                                 }));
                                 combatAction4.Traits.Add(Trait.Spellstrike);
                                 combatAction4.Traits.Add(Trait.Basic);
