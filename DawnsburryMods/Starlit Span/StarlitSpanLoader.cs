@@ -101,7 +101,6 @@ namespace DawnsburryMods.Starlit_Span
                                 });
                             strike.Description = shootingStarDescription + owner!.Spellcasting!.FocusPoints + " focus points left.";
                             strike.StrikeModifiers.OnEachTarget = delegate (Creature striker, Creature target, CheckResult result) {
-                                striker.Spellcasting!.FocusPoints--;
                                 if (result >= CheckResult.Success)
                                 {
                                     var shootingStared = new QEffect("Shooting Star", "Any concealment is negated and cover counts as one step less", ExpirationCondition.CountsDownAtStartOfSourcesTurn, striker, shootingStarIllustration);
