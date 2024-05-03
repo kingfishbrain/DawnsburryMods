@@ -22,7 +22,10 @@ namespace DawnsburryMods.Starlit_Span
     public static class StarlitSpan
     {
 
+        private static ModdedIllustration? shootingStarIllustration;
+
         static FeatName starlitSpanName;
+
         private static String shootingStarDescription = "Make a ranged Strike, ignoring the target's concealment and reducing the target's cover by one degree for this Strike only " +
             "(greater to standard, standard to lesser, and lesser to none). If the Strike hits, the meteor trail hangs in the air. " +
             "This gives the benefits of concealment negation and cover reduction to any attacks made against the creature (by anyone) until the start of your next turn.\n";
@@ -30,6 +33,8 @@ namespace DawnsburryMods.Starlit_Span
         [DawnsburyDaysModMainMethod]
         public static void loadMod()
         {
+            shootingStarIllustration = new ModdedIllustration(@"StarlitSpanResources\ShootingStar.png");
+
             ClassSelectionFeat magus = (AllFeats.All.Find(feat => feat.FeatName == FeatName.Magus) as ClassSelectionFeat)!;
             starlitSpanName = ModManager.RegisterFeatName("Hybrid Study: Starlit Span");
             var starlitSpan = initStarlitSpan();
@@ -83,7 +88,7 @@ namespace DawnsburryMods.Starlit_Span
                             var strike = owner.CreateStrike(weapon);
                             strike.Name = "Shooting Star";
                             strike.WithActionCost(1);
-                            strike.Illustration = new SideBySideIllustration(weapon.Illustration, IllustrationName.StarHit);
+                            strike.Illustration = new SideBySideIllustration(weapon.Illustration, shootingStarIllustration!);
                             strike.Traits.AddRange(new Trait[5]
                                 {
                                     Trait.Divination,
@@ -98,7 +103,7 @@ namespace DawnsburryMods.Starlit_Span
                                 striker.Spellcasting!.FocusPoints--;
                                 if (result >= CheckResult.Success)
                                 {
-                                    var shootingStared = new QEffect("Shooting Star", "Any concealment is negated and cover counts as one step less", ExpirationCondition.CountsDownAtStartOfSourcesTurn, striker, IllustrationName.StarHit);
+                                    var shootingStared = new QEffect("Shooting Star", "Any concealment is negated and cover counts as one step less", ExpirationCondition.CountsDownAtStartOfSourcesTurn, striker, shootingStarIllustration);
                                     shootingStared.IncreaseCover = (qSelf, combatAction, cover) => //actually decreases cover here
                                     {
                                         combatAction.Traits.Add(Trait.UnaffectedByConcealment); // this feels janky but it works 
