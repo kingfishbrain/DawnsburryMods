@@ -89,13 +89,14 @@ namespace DawnsburryMods.Starlit_Span
                             strike.Name = "Shooting Star";
                             strike.WithActionCost(1);
                             strike.Illustration = new SideBySideIllustration(weapon.Illustration, shootingStarIllustration!);
-                            strike.Traits.AddRange(new Trait[5]
+                            strike.Traits.AddRange(new Trait[6]
                                 {
                                     Trait.Divination,
                                     Trait.Ranged,
                                     Trait.Magus,
                                     Trait.Spell,
-                                    Trait.UnaffectedByConcealment
+                                    Trait.UnaffectedByConcealment,
+                                    Trait.Focus
 
                                 });
                             strike.Description = shootingStarDescription + owner!.Spellcasting!.FocusPoints + " focus points left.";
