@@ -23,6 +23,9 @@ namespace DawnsburryMods.Starlit_Span
     {
 
         static FeatName starlitSpanName;
+        private static String shootingStarDescription = "Make a ranged Strike, ignoring the target's concealment and reducing the target's cover by one degree for this Strike only " +
+            "(greater to standard, standard to lesser, and lesser to none). If the Strike hits, the meteor trail hangs in the air. " +
+            "This gives the benefits of concealment negation and cover reduction to any attacks made against the creature (by anyone) until the start of your next turn.\n";
 
         [DawnsburyDaysModMainMethod]
         public static void loadMod()
@@ -50,7 +53,8 @@ namespace DawnsburryMods.Starlit_Span
                 "Your power reaches as far as your senses can perceive, transcending the space between you and your target even with spells that normally require direct physical contact.",
                 "When you use Spellstrike, you can make a ranged weapon or ranged unarmed Strike, as long as the target is within the first range increment of your ranged weapon or ranged unarmed attack. " +
                 "You can deliver the spell even if its range is shorter than the range increment of your ranged attack. \n" +
-                "Conflux Spell: Shooting Star", new List<Trait>(), null)
+                "Conflux Spell: Shooting Star" +
+                shootingStarDescription, new List<Trait>(), null)
                     .WithOnSheet(delegate (CalculatedCharacterSheetValues sheet)
                     {
                         sheet.FocusPointCount += 2;
@@ -89,9 +93,7 @@ namespace DawnsburryMods.Starlit_Span
                                     Trait.UnaffectedByConcealment
 
                                 });
-                            strike.Description = "Make a ranged Strike, ignoring the target's concealment and reducing the target's cover by one degree for this Strike only (greater to standard, " +
-                                "standard to lesser, and lesser to none). If the Strike hits, the meteor trail hangs in the air. This gives the benefits of concealment negation and " +
-                                "cover reduction to any attacks made against the creature (by anyone) until the start of your next turn. \n" + owner!.Spellcasting!.FocusPoints + " focus points left.";
+                            strike.Description = shootingStarDescription + owner!.Spellcasting!.FocusPoints + " focus points left.";
                             strike.StrikeModifiers.OnEachTarget = delegate (Creature striker, Creature target, CheckResult result) {
                                 striker.Spellcasting!.FocusPoints--;
                                 if (result >= CheckResult.Success)
