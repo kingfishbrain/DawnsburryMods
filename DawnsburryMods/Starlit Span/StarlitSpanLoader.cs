@@ -59,7 +59,12 @@ namespace DawnsburryMods.Starlit_Span
                     //adds shooting star as strike modifier
                     .WithOnCreature(creature =>
                     {
-                        var shootingStar = new QEffect("Shooting Star", "Focus Spell that reduces cover and removes concealment through a ranged strike");
+                        var shootingStar = new QEffect("Shooting Star", "Focus Spell that reduces cover and removes concealment through a ranged strike.");
+                        shootingStar.StateCheck  =  (QEffect qSelf) =>
+                        {
+                            qSelf.Description = "Focus Spell that reduces cover and removes concealment through a ranged strike. " + qSelf.Owner!.Spellcasting!.FocusPoints + " focus points left.";
+                        }
+                        ;
                         shootingStar.ProvideStrikeModifier = delegate (Item weapon)
                         {
                             if (!weapon.HasTrait(Trait.Ranged))
@@ -86,7 +91,7 @@ namespace DawnsburryMods.Starlit_Span
                                 });
                             strike.Description = "Make a ranged Strike, ignoring the target's concealment and reducing the target's cover by one degree for this Strike only (greater to standard, " +
                                 "standard to lesser, and lesser to none). If the Strike hits, the meteor trail hangs in the air. This gives the benefits of concealment negation and " +
-                                "cover reduction to any attacks made against the creature (by anyone) until the start of your next turn.";
+                                "cover reduction to any attacks made against the creature (by anyone) until the start of your next turn. \n" + owner!.Spellcasting!.FocusPoints + " focus points left.";
                             strike.StrikeModifiers.OnEachTarget = async delegate (Creature striker, Creature target, CheckResult result)
                             {
                                 striker.Spellcasting!.FocusPoints--;
