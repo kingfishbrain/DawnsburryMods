@@ -3,10 +3,7 @@ using Dawnsbury.Core;
 using Dawnsbury.Core.CharacterBuilder.FeatsDb.Common;
 using Dawnsbury.Core.CharacterBuilder.FeatsDb.Spellbook;
 using Dawnsbury.Core.CharacterBuilder.Spellcasting;
-using Dawnsbury.Core.CombatActions;
-using Dawnsbury.Core.Coroutines.Options;
 using Dawnsbury.Core.Creatures;
-using Dawnsbury.Core.Mechanics.Core;
 using Dawnsbury.Core.Mechanics.Enumerations;
 using Dawnsbury.Core.Mechanics.Targeting;
 using Dawnsbury.Core.Mechanics.Treasure;
@@ -28,18 +25,23 @@ namespace DawnsburryMods.Starlit_Span
 
         public static SpellId loadShootingStar()
         {
-            int arbitraryBigNumber = 300; //can't get the range of the weapon outside of .WithAdditionalConditionOnTargetCreature so this is used as a placeholder input
+            int arbitraryBigNumber = 300; 
             var target = Target.Ranged(arbitraryBigNumber)
                 .WithAdditionalConditionOnTargetCreature((Func<Creature, Creature, Usability>)((self, enemy) =>
             {
-                var rangedWeapon = self.PrimaryItem;
-                if (!isRangedWeapon(rangedWeapon)) rangedWeapon = self.SecondaryItem;
-                if (!isRangedWeapon(rangedWeapon)) return Usability.NotUsable("You must be wielding a Ranged Weapon."); 
-                if (rangedWeapon!.EphemeralItemProperties.NeedsReload) return Usability.NotUsable("Weapon must be loaded.");
-                if (rangedWeapon!.WeaponProperties!.MaximumRange < self.DistanceTo(enemy)) return Usability.NotUsable("Enemy is out of your weapon's range.");
-                return Usability.Usable;
+                var usabilities = self.HeldItems.Select(item =>
+                {
+                    if (!isRangedWeapon(item)) return Usability.NotUsable("You must be wielding a Ranged Weapon.");
+                    if (item!.EphemeralItemProperties.NeedsReload) return Usability.NotUsable("Weapon must be loaded.");
+                    if (item!.WeaponProperties!.MaximumRange < self.DistanceTo(enemy)) return Usability.NotUsable("Enemy is out of your weapon's range.");
+                    return Usability.Usable;
+                });
+                if (usabilities.Contains(Usability.Usable)) return Usability.Usable;
+                if (!usabilities.Any()) return Usability.NotUsable("Must hold ranged weapon");
+                String reasons = usabilities.Aggregate(String.Empty, (acc, x) => acc + x.UnusableReason + "  ");
+                return Usability.NotUsable(reasons);
             }));
-            return ModManager.RegisterNewSpell("Shooting Star", 0, (spellId, spellcaster, spellLevel, inCombat, spellInformation) =>
+            return ModManager.RegisterNewSpell("Shooting Star", 0, (spellId, spellcaster, spellLevel, inCombat, spellInformation) => //SPELL CASTER IS HERE ARGH ASFJASPVVPSWEWEÜ
                 Spells.CreateModern((Illustration)IllustrationName.DimensionalAssault, "Shooting Star", new Trait[4]
                 {
                     Trait.Divination,
@@ -57,7 +59,9 @@ namespace DawnsburryMods.Starlit_Span
                     if (!isRangedWeapon(rangedWeapon)) rangedWeapon = caster.SecondaryItem;
                     var strike = caster.CreateStrike(rangedWeapon!);
                     strike.ChosenTargets = targets;
+                    
                     await strike.WithActionCost(0).AllExecute();
+                    
                 })));
         }
 
