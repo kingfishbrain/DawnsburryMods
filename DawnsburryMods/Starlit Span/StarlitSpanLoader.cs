@@ -95,7 +95,7 @@ namespace DawnsburryMods.Starlit_Span
                                     var shootingStared = new QEffect("Shooting Star", "Any concealment is negated and cover counts as one step less", ExpirationCondition.CountsDownAtStartOfSourcesTurn, striker, IllustrationName.StarHit);
                                     shootingStared.IncreaseCover = (qSelf, combatAction, cover) => //actually decreases cover here
                                     {
-                                        combatAction.Traits.Add(Trait.UnaffectedByConcealment); // worried this might cause a combat action to have this trait for the rest of the battle but it seems fine?
+                                        combatAction.Traits.Add(Trait.UnaffectedByConcealment); // this feels janky but it works 
                                         if (combatAction.HasTrait(Trait.Attack)) return reduceCover(cover);
                                         return cover;
                                     };
