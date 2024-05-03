@@ -92,8 +92,7 @@ namespace DawnsburryMods.Starlit_Span
                             strike.Description = "Make a ranged Strike, ignoring the target's concealment and reducing the target's cover by one degree for this Strike only (greater to standard, " +
                                 "standard to lesser, and lesser to none). If the Strike hits, the meteor trail hangs in the air. This gives the benefits of concealment negation and " +
                                 "cover reduction to any attacks made against the creature (by anyone) until the start of your next turn. \n" + owner!.Spellcasting!.FocusPoints + " focus points left.";
-                            strike.StrikeModifiers.OnEachTarget = async delegate (Creature striker, Creature target, CheckResult result)
-                            {
+                            strike.StrikeModifiers.OnEachTarget = delegate (Creature striker, Creature target, CheckResult result) {
                                 striker.Spellcasting!.FocusPoints--;
                                 if (result >= CheckResult.Success)
                                 {
@@ -104,12 +103,13 @@ namespace DawnsburryMods.Starlit_Span
                                         if (combatAction.HasTrait(Trait.Attack)) return reduceCover(cover);
                                         return cover;
                                     };
-                                    
+
                                     shootingStared.RoundsLeft = 1;
-                                    
+
                                     target.AddQEffect(shootingStared);
                                 }
 
+                                return Task.CompletedTask;
                             };
                             return strike;
 
@@ -144,7 +144,7 @@ namespace DawnsburryMods.Starlit_Span
                             Item weapon2 = weapon;
 
                             Creature self3 = qfSpellstrike.Owner;
-                            return CreateSpellcastingMenu("Spellstrike", new Func<CombatAction, CombatAction>(CreateSpellstrike));
+                            return CreateSpellcastingMenu("Spellstrike", new Func<CombatAction, CombatAction>(CreateSpellstrike!));
                             SubmenuPossibility CreateSpellcastingMenu(string caption, Func<CombatAction, CombatAction?> spellTransformation)
                             {
                                 Func<CombatAction, CombatAction?> spellTransformation2 = spellTransformation;
@@ -152,7 +152,7 @@ namespace DawnsburryMods.Starlit_Span
                                 {
                                     Subsections = new List<PossibilitySection>()
                                 };
-                                SpellcastingSource sourceByOrigin = self3.Spellcasting!.GetSourceByOrigin(Trait.Magus);
+                                SpellcastingSource sourceByOrigin = self3.Spellcasting!.GetSourceByOrigin(Trait.Magus)!;
                                 if (self3.Spellcasting!.FocusPoints > 0 && sourceByOrigin.FocusSpells.Count > 0)
                                 {
                                     AddSpellSubmenu("Focus spells " + string.Join("", Enumerable.Repeat("{icon:SpontaneousSpellSlot}", self3.Spellcasting!.FocusPoints)), sourceByOrigin.FocusSpells);
@@ -190,12 +190,12 @@ namespace DawnsburryMods.Starlit_Span
                                     PossibilitySection possibilitySection = new PossibilitySection(miniSectionCaption);
                                     foreach (CombatAction spell3 in spells)
                                     {
-                                        CombatAction combatAction3 = spellTransformation2(spell3);
+                                        CombatAction combatAction3 = spellTransformation2(spell3)!;
                                         if (combatAction3 != null)
                                         {
                                             string name = combatAction3.Name;
                                             combatAction3.Name = "Spellstrike (" + combatAction3?.ToString() + ")";
-                                            possibilitySection.Possibilities.Add(new ActionPossibility(combatAction3, PossibilitySize.Half)
+                                            possibilitySection.Possibilities.Add(new ActionPossibility(combatAction3!, PossibilitySize.Half)
                                             {
                                                 Caption = name
                                             });
@@ -266,12 +266,13 @@ namespace DawnsburryMods.Starlit_Span
                                     a.AddQEffect(new QEffect
                                     {
                                         Id = QEffectId.SpellstrikeDischarged,
-                                        AfterYouTakeAction = async delegate (QEffect qfDischarge, CombatAction action)
-                                        {
+                                        AfterYouTakeAction = delegate (QEffect qfDischarge, CombatAction action) {
                                             if (action.HasTrait(Trait.Focus))
                                             {
                                                 qfDischarge.ExpiresAt = ExpirationCondition.Immediately;
                                             }
+
+                                            return Task.CompletedTask;
                                         },
                                         ProvideMainAction = delegate (QEffect qfDischarge)
                                         {
@@ -289,12 +290,13 @@ namespace DawnsburryMods.Starlit_Span
                                                     {
                                                         CannotExpireThisTurn = true,
                                                         BonusToAttackRolls = (QEffect qf, CombatAction ca, Creature? df) => (!ca.HasTrait(Trait.Attack)) ? null : new Bonus(1, BonusType.Circumstance, "Magus's Concentration"),
-                                                        AfterYouTakeAction = async delegate (QEffect qf, CombatAction ca)
-                                                        {
+                                                        AfterYouTakeAction = delegate (QEffect qf, CombatAction ca) {
                                                             if (ca.HasTrait(Trait.Attack))
                                                             {
                                                                 qf.ExpiresAt = ExpirationCondition.Immediately;
                                                             }
+
+                                                            return Task.CompletedTask;
                                                         }
                                                     });
                                                 }
