@@ -40,6 +40,7 @@ namespace DawnsburryMods.Starlit_Span
             var starlitSpan = initStarlitSpan();
             ModManager.AddFeat(starlitSpan);
             magus.Subfeats!.Add(starlitSpan);
+            ExpensiveSpellstrike.load();
         }
 
         private static CoverKind reduceCover(CoverKind cover) =>
@@ -240,12 +241,13 @@ namespace DawnsburryMods.Starlit_Span
                                 CombatAction combatAction4 = qfSpellstrike.Owner.CreateStrike(weapon2);
                                 combatAction4.Name = spell2.Name;
                                 combatAction4.Illustration = new SideBySideIllustration(combatAction4.Illustration, spell2.Illustration);
-                                combatAction4.Traits.AddRange(spell2.Traits.Except(new Trait[4]
+                                combatAction4.Traits.AddRange(spell2.Traits.Except(new Trait[5]
                                 {
                             Trait.Prepared,
                             Trait.Spontaneous,
                             Trait.Spell,
-                            Trait.Melee //stops yeeting animation from melee spells cast through a ranged weapon
+                            Trait.Melee, //stops yeeting animation from melee spells cast through a ranged weapon
+                            Trait.Ranged
                                 }));
                                 combatAction4.Traits.Add(Trait.Spellstrike);
                                 combatAction4.Traits.Add(Trait.Basic);
