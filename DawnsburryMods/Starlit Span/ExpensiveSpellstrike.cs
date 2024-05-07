@@ -154,32 +154,36 @@ namespace DawnsburryMods.Starlit_Span
                              a.Spellcasting!.UseUpSpellcastingResources(spell2);
                              if (result >= CheckResult.Success)
                              {
-                                 if (combatAction4.HasTrait(Trait.Ranged))
+                                 spell2.ActionCost = 0;
+                                 var currentTile = a.Occupies;
+
+
+                                 switch (spell2.Target)
                                  {
-                                     spell2.ActionCost = 0;
-
-                                     switch (spell2.Target)
-                                     {
-                                         case CreatureTarget target:
-                                             spell2.Target = combatAction4.Target;
-                                             spell2.ChosenTargets = combatAction4.ChosenTargets;
-                                             await spell2.AllExecute();
-                                             break;
-                                         case CloseAreaTarget target:
-                                             var currentTile = a.Occupies;
-                                             a.Occupies = d.Occupies;
-                                             await a.Battle.GameLoop.FullCast(spell2);
-                                             await spell2.AllExecute();
-                                             a.Occupies = currentTile;
-                                             break;
-                                         case BurstAreaTarget target:
-
-                                             break;
-
-                                     }
-
+                                     case CreatureTarget target:
+                                         spell2.Target = combatAction4.Target;
+                                         spell2.ChosenTargets = combatAction4.ChosenTargets;
+                                         await spell2.AllExecute();
+                                         break;
+                                     case CloseAreaTarget target:
+                                         a.Occupies = d.Occupies;
+                                         await a.Battle.GameLoop.FullCast(spell2);
+                                         spell2.Target = combatAction4.Target;
+                                         spell2.ChosenTargets = combatAction4.ChosenTargets;
+                                         await spell2.AllExecute();
+                                         a.Occupies = currentTile;
+                                         break;
+                                     case BurstAreaTarget target:
+                                         target.Range = 1;
+                                         a.Occupies = d.Occupies;
+                                         await a.Battle.GameLoop.FullCast(spell2);
+                                         a.Occupies = currentTile;
+                                         break;
 
                                  }
+
+
+
                              }
 
                              a.AddQEffect(new QEffect
