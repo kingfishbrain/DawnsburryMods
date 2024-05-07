@@ -40,7 +40,7 @@ namespace DawnsburryMods.Starlit_Span
             var starlitSpan = initStarlitSpan();
             ModManager.AddFeat(starlitSpan);
             magus.Subfeats!.Add(starlitSpan);
-            ExpensiveSpellstrike.load();
+            ExpensiveSpellstrike.load(starlitSpanName);
         }
 
         private static CoverKind reduceCover(CoverKind cover) =>

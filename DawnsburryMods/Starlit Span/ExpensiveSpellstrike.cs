@@ -18,7 +18,7 @@ namespace DawnsburryMods.Starlit_Span
 {
     public static class ExpensiveSpellstrike
     {
-        public static void load()
+        public static void load(FeatName starlitSpanName)
         {
             var spellstrike = new TrueFeat(ModManager.RegisterFeatName("Expansive Spellstrike"), 2, "You've adapted a wider array of spells to work with your attacks. ", "Rather than needing to use a spell that has a spell attack roll for a Spellstrike, you can use a spell with a saving throw that can target a creature or that has an area of a burst, cone, or line (abiding by any other restrictions of Spellstrike). When you Cast a Spell that doesn't have a spell attack roll as part of a Spellstrike, it works in the following ways. \n" +
                 "-If your Strike critically fails, the spell is lost with no effect.\n" +
@@ -33,6 +33,10 @@ namespace DawnsburryMods.Starlit_Span
                  qfSpellstrike.ProvideStrikeModifierAsPossibility = delegate (Item weapon)
                  {
                      Item weapon2 = weapon;
+                     if (!weapon2.HasTrait(Trait.Melee) && !creature.HasFeat(starlitSpanName))
+                     {
+                         return null;
+                     }
 
                      Creature self3 = qfSpellstrike.Owner;
                      return CreateSpellcastingMenu("Expansive Spellstrike", new Func<CombatAction, CombatAction>(CreateSpellstrike!));
