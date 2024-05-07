@@ -140,7 +140,7 @@ namespace DawnsburryMods.Starlit_Span
                     {
                         creature.QEffects.ForEach(qeffect =>
                         {
-                            if (qeffect!.Name?.Contains("Spellstrike {icon:TwoActions}") == true)
+                            if (qeffect!.Name?.Equals("Spellstrike {icon:TwoActions}") == true)
                             {
                                 qeffect.ExpiresAt = ExpirationCondition.Immediately;
                             }

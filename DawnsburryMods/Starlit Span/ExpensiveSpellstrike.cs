@@ -27,18 +27,22 @@ namespace DawnsburryMods.Starlit_Span
     {
         public static void load()
         {
-            var spellstrike = new TrueFeat(ModManager.RegisterFeatName("Expensive Spellstrike"), 2, "You spellstrike for a lot of cash", "da rulez", new Trait[1]
+            var spellstrike = new TrueFeat(ModManager.RegisterFeatName("Expansive Spellstrike"), 2, "You've adapted a wider array of spells to work with your attacks. ", "Rather than needing to use a spell that has a spell attack roll for a Spellstrike, you can use a spell with a saving throw that can target a creature or that has an area of a burst, cone, or line (abiding by any other restrictions of Spellstrike). When you Cast a Spell that doesn't have a spell attack roll as part of a Spellstrike, it works in the following ways. \n" +
+                "-If your Strike critically fails, the spell is lost with no effect.\n" +
+                "-Creatures use their normal defenses against the spell, such as saving throws.\n" +
+                "-If the spell lets you select a number of targets, it instead targets only the creature you attacked with your Strike.\n" +
+                "If the spell has an area, the area emits from the target. The spell affects the target and all creatures in the area as normal, but the Strike still targets only one creature.", new Trait[1]
              {
                 Trait.Magus
              }).WithOnCreature(creature =>
              {
-                 QEffect qfSpellstrike = new QEffect("Spellexpensivestrike {icon:TwoActions}", "You cast a spell and deliver it through your weapon Strike.");
+                 QEffect qfSpellstrike = new QEffect("Expansive Spellstrike {icon:TwoActions}", "You cast a spell and deliver it through your weapon Strike.");
                  qfSpellstrike.ProvideStrikeModifierAsPossibility = delegate (Item weapon)
                  {
                      Item weapon2 = weapon;
 
                      Creature self3 = qfSpellstrike.Owner;
-                     return CreateSpellcastingMenu("Expensive Spellstrike", new Func<CombatAction, CombatAction>(CreateSpellstrike!));
+                     return CreateSpellcastingMenu("Expansive Spellstrike", new Func<CombatAction, CombatAction>(CreateSpellstrike!));
                      SubmenuPossibility CreateSpellcastingMenu(string caption, Func<CombatAction, CombatAction?> spellTransformation)
                      {
                          Func<CombatAction, CombatAction?> spellTransformation2 = spellTransformation;
@@ -88,7 +92,7 @@ namespace DawnsburryMods.Starlit_Span
                                  if (combatAction3 != null)
                                  {
                                      string name = combatAction3.Name;
-                                     combatAction3.Name = "Expensive Spellstrike (" + combatAction3?.ToString() + ")";
+                                     combatAction3.Name = "Expansive Spellstrike (" + combatAction3?.ToString() + ")";
                                      possibilitySection.Possibilities.Add(new ActionPossibility(combatAction3!, PossibilitySize.Half)
                                      {
                                          Caption = name
