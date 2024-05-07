@@ -31,7 +31,7 @@ namespace DawnsburryMods.Starlit_Span
                 "-If your Strike critically fails, the spell is lost with no effect.\n" +
                 "-Creatures use their normal defenses against the spell, such as saving throws.\n" +
                 "-If the spell lets you select a number of targets, it instead targets only the creature you attacked with your Strike.\n" +
-                "If the spell has an area, the area emits from the target. The spell affects the target and all creatures in the area as normal, but the Strike still targets only one creature.", new Trait[1]
+                "-If the spell has an area, the area emits from the target. The spell affects the target and all creatures in the area as normal, but the Strike still targets only one creature.", new Trait[1]
              {
                 Trait.Magus
              }).WithOnCreature(creature =>
