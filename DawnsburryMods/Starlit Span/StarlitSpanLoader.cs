@@ -222,7 +222,7 @@ namespace DawnsburryMods.Starlit_Span
                                 CombatAction spell2 = spell;
 
 
-                                if (spell2.SubspellVariants != null || spell2.Variants != null)
+                                if (spell2.SubspellVariants != null || spell2.Variants != null) //tried to include variant spells but this doesn't seem to do anything
                                 {
                                     spell2.ActionCost = 2;
                                     spell2.SpentActions = 2;
