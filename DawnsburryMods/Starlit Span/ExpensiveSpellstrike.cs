@@ -1,9 +1,6 @@
 ﻿using Dawnsbury.Audio;
-using Dawnsbury.Auxiliary;
 using Dawnsbury.Core;
-using Dawnsbury.Core.CharacterBuilder;
 using Dawnsbury.Core.CharacterBuilder.Feats;
-using Dawnsbury.Core.CharacterBuilder.FeatsDb;
 using Dawnsbury.Core.CombatActions;
 using Dawnsbury.Core.Creatures;
 using Dawnsbury.Core.Mechanics;
@@ -15,11 +12,7 @@ using Dawnsbury.Core.Mechanics.Targeting.Targets;
 using Dawnsbury.Core.Mechanics.Treasure;
 using Dawnsbury.Core.Possibilities;
 using Dawnsbury.Display.Illustrations;
-using Dawnsbury.IO;
 using Dawnsbury.Modding;
-using Microsoft.Xna.Framework;
-using System.Reflection;
-using AutoMapper;
 
 namespace DawnsburryMods.Starlit_Span
 {
@@ -27,18 +20,22 @@ namespace DawnsburryMods.Starlit_Span
     {
         public static void load()
         {
-            var spellstrike = new TrueFeat(ModManager.RegisterFeatName("Expensive Spellstrike"), 2, "You spellstrike for a lot of cash", "da rulez", new Trait[1]
+            var spellstrike = new TrueFeat(ModManager.RegisterFeatName("Expansive Spellstrike"), 2, "You've adapted a wider array of spells to work with your attacks. ", "Rather than needing to use a spell that has a spell attack roll for a Spellstrike, you can use a spell with a saving throw that can target a creature or that has an area of a burst, cone, or line (abiding by any other restrictions of Spellstrike). When you Cast a Spell that doesn't have a spell attack roll as part of a Spellstrike, it works in the following ways. \n" +
+                "-If your Strike critically fails, the spell is lost with no effect.\n" +
+                "-Creatures use their normal defenses against the spell, such as saving throws.\n" +
+                "-If the spell lets you select a number of targets, it instead targets only the creature you attacked with your Strike.\n" +
+                "-If the spell has an area, the area emits from the target. The spell affects the target and all creatures in the area as normal, but the Strike still targets only one creature.", new Trait[1]
              {
                 Trait.Magus
              }).WithOnCreature(creature =>
              {
-                 QEffect qfSpellstrike = new QEffect("Spellexpensivestrike {icon:TwoActions}", "You cast a spell and deliver it through your weapon Strike.");
+                 QEffect qfSpellstrike = new QEffect("Expansive Spellstrike {icon:TwoActions}", "You cast a spell and deliver it through your weapon Strike.");
                  qfSpellstrike.ProvideStrikeModifierAsPossibility = delegate (Item weapon)
                  {
                      Item weapon2 = weapon;
 
                      Creature self3 = qfSpellstrike.Owner;
-                     return CreateSpellcastingMenu("Expensive Spellstrike", new Func<CombatAction, CombatAction>(CreateSpellstrike!));
+                     return CreateSpellcastingMenu("Expansive Spellstrike", new Func<CombatAction, CombatAction>(CreateSpellstrike!));
                      SubmenuPossibility CreateSpellcastingMenu(string caption, Func<CombatAction, CombatAction?> spellTransformation)
                      {
                          Func<CombatAction, CombatAction?> spellTransformation2 = spellTransformation;
@@ -88,7 +85,7 @@ namespace DawnsburryMods.Starlit_Span
                                  if (combatAction3 != null)
                                  {
                                      string name = combatAction3.Name;
-                                     combatAction3.Name = "Expensive Spellstrike (" + combatAction3?.ToString() + ")";
+                                     combatAction3.Name = "Expansive Spellstrike (" + combatAction3?.ToString() + ")";
                                      possibilitySection.Possibilities.Add(new ActionPossibility(combatAction3!, PossibilitySize.Half)
                                      {
                                          Caption = name
@@ -108,7 +105,7 @@ namespace DawnsburryMods.Starlit_Span
                          CombatAction spell2 = spell;
 
 
-                         if (spell2.SubspellVariants != null || spell2.Variants != null)
+                         if (spell2.SubspellVariants != null || spell2.Variants != null) //tried to include variant spells but this doesn't seem to do anything
                          {
                              spell2.ActionCost = 2;
                              spell2.SpentActions = 2;
@@ -150,32 +147,36 @@ namespace DawnsburryMods.Starlit_Span
                              a.Spellcasting!.UseUpSpellcastingResources(spell2);
                              if (result >= CheckResult.Success)
                              {
-                                 if (combatAction4.HasTrait(Trait.Ranged))
+                                 spell2.ActionCost = 0;
+                                 var currentTile = a.Occupies;
+
+
+                                 switch (spell2.Target)
                                  {
-                                     spell2.ActionCost = 0;
-
-                                     switch (spell2.Target)
-                                     {
-                                         case CreatureTarget target:
-                                             spell2.Target = combatAction4.Target;
-                                             spell2.ChosenTargets = combatAction4.ChosenTargets;
-                                             await spell2.AllExecute();
-                                             break;
-                                         case CloseAreaTarget target:
-                                             var currentTile = a.Occupies;
-                                             a.Occupies = d.Occupies;
-                                             await a.Battle.GameLoop.FullCast(spell2);
-                                             await spell2.AllExecute();
-                                             a.Occupies = currentTile;
-                                             break;
-                                         case BurstAreaTarget target:
-
-                                             break;
-
-                                     }
-
+                                     case CreatureTarget target:
+                                         spell2.Target = combatAction4.Target;
+                                         spell2.ChosenTargets = combatAction4.ChosenTargets;
+                                         await spell2.AllExecute();
+                                         break;
+                                     case CloseAreaTarget target:
+                                         a.Occupies = d.Occupies;
+                                         await a.Battle.GameLoop.FullCast(spell2);
+                                         spell2.Target = combatAction4.Target;
+                                         spell2.ChosenTargets = combatAction4.ChosenTargets;
+                                         await spell2.AllExecute();
+                                         a.Occupies = currentTile;
+                                         break;
+                                     case BurstAreaTarget target:
+                                         target.Range = 1;
+                                         a.Occupies = d.Occupies;
+                                         await a.Battle.GameLoop.FullCast(spell2);
+                                         a.Occupies = currentTile;
+                                         break;
 
                                  }
+
+
+
                              }
 
                              a.AddQEffect(new QEffect
