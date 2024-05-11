@@ -100,7 +100,7 @@ namespace GoblinAncestry.GoblinAncestry
                        BonusToDamage = (qfSelf, combatAction, defender) =>
                        {
                            if (combatAction.HasTrait(Trait.Fire) && combatAction.HasTrait(Trait.Spell))
-                               return new Bonus(combatAction.SpellLevel / 2, BonusType.Status, "Burn It!");
+                               return new Bonus(Math.Max(combatAction.SpellLevel / 2, 1), BonusType.Status, "Burn It!");
                            return null;
 
                        }
@@ -111,7 +111,7 @@ namespace GoblinAncestry.GoblinAncestry
 
                    goblin.AddQEffect(burnIt);
 
-               }).WithPermanentQEffect("Increase persistant fire damage", qfBurnIt =>
+               }).WithPermanentQEffect("Increase persistent fire damage", qfBurnIt =>
                {
                    qfBurnIt.AddGrantingOfTechnical(cr => cr.EnemyOf(qfBurnIt.Owner), qfBurnItOnAnEnemy =>
                    {
