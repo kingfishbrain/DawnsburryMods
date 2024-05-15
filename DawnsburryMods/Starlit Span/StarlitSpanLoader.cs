@@ -69,7 +69,7 @@ namespace DawnsburryMods.Starlit_Span
                     //adds shooting star as strike modifier
                     .WithOnCreature(creature =>
                     {
-                        var shootingStar = new QEffect("Shooting Star", "Focus Spell that reduces cover and removes concealment through a ranged strike.");
+                        var shootingStar = new QEffect("Shooting Star {icon:Action}", "Focus Spell that reduces cover and removes concealment through a ranged strike.");
                         shootingStar.StateCheck  =  (QEffect qSelf) =>
                         {
                             qSelf.Description = "Focus Spell that reduces cover and removes concealment through a ranged strike. " + qSelf.Owner!.Spellcasting!.FocusPoints + " focus points left.";
@@ -149,21 +149,19 @@ namespace DawnsburryMods.Starlit_Span
                         QEffect qfSpellstrike = new QEffect("Spellstrike {icon:TwoActions}", "You cast a spell and deliver it through your weapon Strike.");
                         qfSpellstrike.ProvideStrikeModifierAsPossibility = delegate (Item weapon)
                         {
-                            Item weapon2 = weapon;
-
-                            Creature self3 = qfSpellstrike.Owner;
+                            Creature self = qfSpellstrike.Owner;
                             return CreateSpellcastingMenu("Spellstrike", new Func<CombatAction, CombatAction>(CreateSpellstrike!));
                             SubmenuPossibility CreateSpellcastingMenu(string caption, Func<CombatAction, CombatAction?> spellTransformation)
                             {
                                 Func<CombatAction, CombatAction?> spellTransformation2 = spellTransformation;
-                                SubmenuPossibility castASpell = new SubmenuPossibility(new SideBySideIllustration(weapon2.Illustration, IllustrationName.CastASpell), caption)
+                                SubmenuPossibility castASpell = new SubmenuPossibility(new SideBySideIllustration(weapon.Illustration, IllustrationName.CastASpell), caption)
                                 {
                                     Subsections = new List<PossibilitySection>()
                                 };
-                                SpellcastingSource sourceByOrigin = self3.Spellcasting!.GetSourceByOrigin(Trait.Magus)!;
-                                if (self3.Spellcasting!.FocusPoints > 0 && sourceByOrigin.FocusSpells.Count > 0)
+                                SpellcastingSource sourceByOrigin = self.Spellcasting!.GetSourceByOrigin(Trait.Magus)!;
+                                if (self.Spellcasting!.FocusPoints > 0 && sourceByOrigin.FocusSpells.Count > 0)
                                 {
-                                    AddSpellSubmenu("Focus spells " + string.Join("", Enumerable.Repeat("{icon:SpontaneousSpellSlot}", self3.Spellcasting!.FocusPoints)), sourceByOrigin.FocusSpells);
+                                    AddSpellSubmenu("Focus spells " + string.Join("", Enumerable.Repeat("{icon:SpontaneousSpellSlot}", self.Spellcasting!.FocusPoints)), sourceByOrigin.FocusSpells);
                                 }
 
                                 if (sourceByOrigin.Cantrips.Count > 0)
@@ -196,14 +194,14 @@ namespace DawnsburryMods.Starlit_Span
                                 void AddSpellSubmenu(string miniSectionCaption, IEnumerable<CombatAction> spells)
                                 {
                                     PossibilitySection possibilitySection = new PossibilitySection(miniSectionCaption);
-                                    foreach (CombatAction spell3 in spells)
+                                    foreach (CombatAction spell in spells)
                                     {
-                                        CombatAction combatAction3 = spellTransformation2(spell3)!;
-                                        if (combatAction3 != null)
+                                        CombatAction spellstrike = spellTransformation2(spell)!;
+                                        if (spellstrike != null)
                                         {
-                                            string name = combatAction3.Name;
-                                            combatAction3.Name = "Spellstrike (" + combatAction3?.ToString() + ")";
-                                            possibilitySection.Possibilities.Add(new ActionPossibility(combatAction3!, PossibilitySize.Half)
+                                            string name = spellstrike.Name;
+                                            spellstrike.Name = "Spellstrike (" + spellstrike?.ToString() + ")";
+                                            possibilitySection.Possibilities.Add(new ActionPossibility(spellstrike!, PossibilitySize.Half)
                                             {
                                                 Caption = name
                                             });
@@ -219,29 +217,27 @@ namespace DawnsburryMods.Starlit_Span
 
                             CombatAction? CreateSpellstrike(CombatAction spell)
                             {
-                                CombatAction spell2 = spell;
 
-
-                                if (spell2.SubspellVariants != null || spell2.Variants != null) //tried to include variant spells but this doesn't seem to do anything
+                                if (spell.SubspellVariants != null || spell.Variants != null) //tried to include variant spells but this doesn't seem to do anything
                                 {
-                                    spell2.ActionCost = 2;
-                                    spell2.SpentActions = 2;
+                                    spell.ActionCost = 2;
+                                    spell.SpentActions = 2;
                                 }
 
-                                if (spell2.ActionCost != 1 && spell2.ActionCost != 2)
+                                if (spell.ActionCost != 1 && spell.ActionCost != 2)
                                 {
                                     return null;
                                 }
 
-                                if (!spell2.HasTrait(Trait.Attack))
+                                if (!spell.HasTrait(Trait.Attack))
                                 {
                                     return null;
                                 }
 
-                                CombatAction combatAction4 = qfSpellstrike.Owner.CreateStrike(weapon2);
-                                combatAction4.Name = spell2.Name;
-                                combatAction4.Illustration = new SideBySideIllustration(combatAction4.Illustration, spell2.Illustration);
-                                combatAction4.Traits.AddRange(spell2.Traits.Except(new Trait[5]
+                                CombatAction spellstrike = qfSpellstrike.Owner.CreateStrike(weapon);
+                                spellstrike.Name = spell.Name;
+                                spellstrike.Illustration = new SideBySideIllustration(spellstrike.Illustration, spell.Illustration);
+                                spellstrike.Traits.AddRange(spell.Traits.Except(new Trait[5]
                                 {
                             Trait.Prepared,
                             Trait.Spontaneous,
@@ -249,23 +245,23 @@ namespace DawnsburryMods.Starlit_Span
                             Trait.Melee, //stops yeeting animation from melee spells cast through a ranged weapon
                             Trait.Ranged
                                 }));
-                                combatAction4.Traits.Add(Trait.Spellstrike);
-                                combatAction4.Traits.Add(Trait.Basic);
-                                combatAction4.ActionCost = 2;
-                                ((CreatureTarget)combatAction4.Target).WithAdditionalConditionOnTargetCreature((Creature a, Creature d) => a.HasEffect(QEffectId.SpellstrikeDischarged) ? Usability.NotUsable("You must first recharge your Spellstrike by spending an action or casting a focus spell.") : Usability.Usable);
-                                combatAction4.StrikeModifiers.OnEachTarget = async delegate (Creature a, Creature d, CheckResult result)
+                                spellstrike.Traits.Add(Trait.Spellstrike);
+                                spellstrike.Traits.Add(Trait.Basic);
+                                spellstrike.ActionCost = 2;
+                                ((CreatureTarget)spellstrike.Target).WithAdditionalConditionOnTargetCreature((Creature a, Creature d) => a.HasEffect(QEffectId.SpellstrikeDischarged) ? Usability.NotUsable("You must first recharge your Spellstrike by spending an action or casting a focus spell.") : Usability.Usable);
+                                spellstrike.StrikeModifiers.OnEachTarget = async delegate (Creature a, Creature d, CheckResult result)
                                 {
-                                    a.Spellcasting!.UseUpSpellcastingResources(spell2);
+                                    a.Spellcasting!.UseUpSpellcastingResources(spell);
                                     if (result >= CheckResult.Success)
                                     {
-                                        if (spell2.EffectOnOneTarget != null)
+                                        if (spell.EffectOnOneTarget != null)
                                         {
-                                            await spell2.EffectOnOneTarget!(spell2, a, d, result);
+                                            await spell.EffectOnOneTarget!(spell, a, d, result);
                                         }
 
-                                        if (spell2.EffectOnChosenTargets != null)
+                                        if (spell.EffectOnChosenTargets != null)
                                         {
-                                            await spell2.EffectOnChosenTargets!(spell2, a, new ChosenTargets
+                                            await spell.EffectOnChosenTargets!(spell, a, new ChosenTargets
                                             {
                                                 ChosenCreature = d,
                                                 ChosenCreatures = { d }
@@ -286,17 +282,16 @@ namespace DawnsburryMods.Starlit_Span
                                         },
                                         ProvideMainAction = delegate (QEffect qfDischarge)
                                         {
-                                            QEffect qfDischarge2 = qfDischarge;
-                                            return (ActionPossibility)new CombatAction(qfDischarge2.Owner, IllustrationName.Good, "Recharge Spellstrike", new Trait[2]
+                                            return (ActionPossibility)new CombatAction(qfDischarge.Owner, IllustrationName.Good, "Recharge Spellstrike", new Trait[2]
                                             {
                                         Trait.Concentrate,
                                         Trait.Basic
-                                            }, "Recharge your Spellstrike so that you can use it again." + (qfDischarge2.Owner.HasEffect(QEffectId.MagussConcentration) ? " {Blue}You gain a +1 circumstance bonus to your next attack until the end of your next turn.{/Blue}" : ""), Target.Self()).WithActionCost(1).WithSoundEffect(SfxName.AuraExpansion).WithEffectOnSelf(async delegate (Creature self2)
+                                            }, "Recharge your Spellstrike so that you can use it again." + (qfDischarge.Owner.HasEffect(QEffectId.MagussConcentration) ? " {Blue}You gain a +1 circumstance bonus to your next attack until the end of your next turn.{/Blue}" : ""), Target.Self()).WithActionCost(1).WithSoundEffect(SfxName.AuraExpansion).WithEffectOnSelf(async delegate (Creature self)
                                             {
-                                                qfDischarge2.ExpiresAt = ExpirationCondition.Immediately;
-                                                if (self2.HasEffect(QEffectId.MagussConcentration))
+                                                qfDischarge.ExpiresAt = ExpirationCondition.Immediately;
+                                                if (self.HasEffect(QEffectId.MagussConcentration))
                                                 {
-                                                    self2.AddQEffect(new QEffect("Magus's Concentration", "You have +1 to your next attack roll.", ExpirationCondition.ExpiresAtEndOfSourcesTurn, self2, (Illustration)IllustrationName.Good)
+                                                    self.AddQEffect(new QEffect("Magus's Concentration", "You have +1 to your next attack roll.", ExpirationCondition.ExpiresAtEndOfSourcesTurn, self, (Illustration)IllustrationName.Good)
                                                     {
                                                         CannotExpireThisTurn = true,
                                                         BonusToAttackRolls = (QEffect qf, CombatAction ca, Creature? df) => (!ca.HasTrait(Trait.Attack)) ? null : new Bonus(1, BonusType.Circumstance, "Magus's Concentration"),
@@ -314,8 +309,8 @@ namespace DawnsburryMods.Starlit_Span
                                         }
                                     });
                                 };
-                                combatAction4.Description = StrikeRules.CreateBasicStrikeDescription(combatAction4.StrikeModifiers, null, "The success effect of " + spell2.Name + " is inflicted upon the target.", "Critical spell effect.", null, "You can't use Spellstrike again until you recharge it by spending an action or casting a focus spell.");
-                                return combatAction4;
+                                spellstrike.Description = StrikeRules.CreateBasicStrikeDescription(spellstrike.StrikeModifiers, null, "The success effect of " + spell.Name + " is inflicted upon the target.", "Critical spell effect.", null, "You can't use Spellstrike again until you recharge it by spending an action or casting a focus spell.");
+                                return spellstrike;
                             }
                         };
                         creature.AddQEffect(qfSpellstrike);
