@@ -25,7 +25,7 @@ namespace GoblinAncestry.GoblinAncestry
 
         
 
-        private static ModdedIllustration GoblinNoteIllustration;
+        private static ModdedIllustration? GoblinNoteIllustration;
 
         private static SfxName GoblinSongSoundEffect;
 
@@ -72,7 +72,7 @@ namespace GoblinAncestry.GoblinAncestry
 
                    if (sheet.GetProficiency(Trait.Acrobatics) == Proficiency.Untrained)
                    {
-                       sheet.AddFeat(AllFeats.All.Find(feat => feat.FeatName == FeatName.Acrobatics), null);
+                       sheet.AddFeat(AllFeats.All.Find(feat => feat.FeatName == FeatName.Acrobatics)!, null);
                    }
                    else
                    {
@@ -120,7 +120,7 @@ namespace GoblinAncestry.GoblinAncestry
                            if (qfIncoming.Id == QEffectId.PersistentDamage && qfBurnIt.Owner.Battle.ActiveCreature == qfBurnIt.Owner
                            && qfIncoming.Key == "PersistentDamage:Fire")
                            {
-                               return QEffect.PersistentDamage(qfIncoming.Name.Split(" ")[0] + "+1", DamageKind.Fire);
+                               return QEffect.PersistentDamage(qfIncoming.Name!.Split(" ")[0] + "+1", DamageKind.Fire);
                            }
                            else
                            {
@@ -130,7 +130,7 @@ namespace GoblinAncestry.GoblinAncestry
                    });
                });
 
-            yield return new AncestryFeat("Scuttle",
+            yield return new AncestryFeat("Scuttle {icon:Reaction}",
                     "You take advantage of your ally’s movement to adjust your position.",
                     "Trigger An ally ends a move action adjacent to you. \n You Step.")
                  .WithPermanentQEffect("Trigger An ally ends a move action adjacent to you. \n You Step.", qfScuttle =>
@@ -151,9 +151,10 @@ namespace GoblinAncestry.GoblinAncestry
                          };
                      });
                  });
-            yield return new AncestryFeat("Hard Tail",
+            yield return new AncestryFeat("Hard Tail {icon:Action}",
                 "Your tail is much stronger than most, and you can lash out with it with the strength of a whip.",
                 "You gain a tail unarmed attack that deals 1d6 bludgeoning damage.")
+                .WithActionCost(1)
                 .WithOnCreature(creature =>
                 {
                     creature.AddQEffect(new QEffect("Hard Tail", "You have a tail attack.")
@@ -164,7 +165,7 @@ namespace GoblinAncestry.GoblinAncestry
                     });
                 }).WithPrerequisite(values => values.AllFeats.Any(feat => feat.Name.Equals("Tailed Goblin")), "You must be a Tailed Goblin.");
 
-            yield return new AncestryFeat("Goblin Song",
+            yield return new AncestryFeat("Goblin Song {icon:Action}",
             "You sing annoying goblin songs, distracting your foes with silly and repetitive lyrics.",
             "Attempt a Performance check against the Will DC of a single enemy within 30 feet. This has all the usual traits and restrictions of a Performance check. " +
             "You can affect up to two targets within range if you have expert proficiency in Performance, four if you have master proficiency, " +
@@ -172,10 +173,10 @@ namespace GoblinAncestry.GoblinAncestry
             "Critical Success The target takes a –1 status penalty to Perception checks and Will saves for 1 minute." +
             "\r\nSuccess The target takes a –1 status penalty to Perception checks and Will saves for 1 round." +
             "\r\nCritical Failure The target is temporarily immune to attempts to use Goblin Song for 1 hour.")
-            .WithActionCost(2)
+            .WithActionCost(1)
             .WithOnCreature((sheet, creature) =>
             {
-                var performance = creature.PersistentCharacterSheet.Calculated.GetProficiency(Trait.Performance);
+                var performance = creature.PersistentCharacterSheet!.Calculated.GetProficiency(Trait.Performance);
 #pragma warning disable CS8524 //enum is exhaustingly matched so there is no need for a default case
                 int targetCount = performance switch
                 {
@@ -210,7 +211,7 @@ namespace GoblinAncestry.GoblinAncestry
                     .WithOverriddenTargetLine("up to " + targetCount.ToString() + " enemies.", true)
                     ;
 
-                creature.AddQEffect(new QEffect("Goblin Song", "You can use Goblin Song against " + targets.ToString() + " enemies")
+                creature.AddQEffect(new QEffect()
                 {
                     ProvideActionIntoPossibilitySection = (qfSelf, possibilitySection) =>
                     {
@@ -223,7 +224,7 @@ namespace GoblinAncestry.GoblinAncestry
 
                         return new ActionPossibility(new CombatAction
                             (goblin, GoblinNoteIllustration, "Goblin Song", Array.Empty<Trait>(),
-                                    "Attempt a Performance check against the Will DC of up to " + targets.ToString() + " enemy within 30 feet. This has all the usual traits and restrictions of a Performance check. " +
+                                    "Attempt a Performance check against the Will DC of up to " + targetCount + " enemies within 30 feet. This has all the usual traits and restrictions of a Performance check. " +
                                     "\r\nCritical Success The target takes a –1 status penalty to Perception checks and Will saves for 1 minute." +
                                     "\r\nSuccess The target takes a –1 status penalty to Perception checks and Will saves for 1 round." +
                                     "\r\nCritical Failure The target is temporarily immune to attempts to use Goblin Song for 1 hour.",

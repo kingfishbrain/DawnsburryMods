@@ -96,7 +96,7 @@ namespace GoblinAncestry.GoblinAncestry
             yield return new HeritageSelectionFeat(FeatName.CustomFeat,
                     "Your family's teeth are formidable weapons.",
                     "You gain a jaws unarmed attack that deals 1d6 piercing damage. Your jaws have the finesse and unarmed traits.")
-                .WithCustomName("Razortooth Goblin")
+                .WithCustomName("Razortooth Goblin {icon:Action}")
                 .WithOnCreature(creature =>
                 {
                     creature.AddQEffect(new QEffect("Razortooth", "You have a jaws attack.")
