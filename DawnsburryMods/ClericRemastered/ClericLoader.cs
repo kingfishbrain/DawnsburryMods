@@ -146,7 +146,7 @@ namespace DawnsburryMods.ClericRemastered
                 });
             var EmblazonArmaments = ModManager.RegisterFeatName("Emblazon Armaments");
             yield return new TrueFeat(EmblazonArmaments, 2, "Carefully etching a sacred image into a physical object, you steel yourself for battle.",
-                "Choose if you want to emblazon your weapons or your shields.", new Trait[1] { Trait.Cleric }, new List<Feat>() { EmblazonWeapon, EmblazonShield });
+                "Choose if you want to emblazon your weapon or your shield.", new Trait[1] { Trait.Cleric }, new List<Feat>() { EmblazonWeapon, EmblazonShield });
 
 
 
@@ -154,7 +154,7 @@ namespace DawnsburryMods.ClericRemastered
             var RaiseSymbol = ModManager.RegisterFeatName("Raise Symbol");
             yield return new TrueFeat(RaiseSymbol, 4, "You present your religious symbol emphatically.",
                 "You gain a +2 circumstance bonus to saving throws until the start of your next turn. " +
-                "While it’s raised, if you roll a success at a saving throw against a positive or negative effect, you get a critical success instead." +
+                "While it’s raised, if you roll a success at a saving throw against a positive or negative effect, you get a critical success instead. " +
                 "If you're wielding a shield and you have the Emblazon Shield feat, you gain the effects of Raise a Shield when you use this action and the effects of this action when you Raise a Shield."
                 , new Trait[1] { Trait.Cleric })
                 .WithActionCost(1)
@@ -186,7 +186,7 @@ namespace DawnsburryMods.ClericRemastered
                             return new ActionPossibility(new CombatAction
                             (creature, IllustrationName.DivineLance, "Raise Symbol", Array.Empty<Trait>(),
                                 "You gain a +2 circumstance bonus to saving throws until the start of your next turn. " +
-                                "While it’s raised, if you roll a success at a saving throw against a positive or negative effect, you get a critical success instead." +
+                                "While it’s raised, if you roll a success at a saving throw against a positive or negative effect, you get a critical success instead. " +
                                 "If you're wielding an emblazoned shield and you have the Emblazon Shield feat, you gain the effects of Raise a Shield when you use this action and the effects of this action when you Raise a Shield.",
                                     Target.Self())
                             .WithActionCost(1)
@@ -218,10 +218,11 @@ namespace DawnsburryMods.ClericRemastered
                 });
             var ChannelSmite = ModManager.RegisterFeatName("Channel Smite");
             yield return new TrueFeat(ChannelSmite, 4, "You siphon the energies of life and death through a melee attack and into your foe.",
-                "Cost Expend a harm or heal spell\r\n" +
+                "Cost: Expend a harm or heal spell\r\n\n" +
                 "Make a melee Strike. On a hit, you cast the 1-action version of the expended spell to damage the target, in addition to the normal damage from your Strike. " +
                 "The target automatically gets a failure on its save (or a critical failure if your Strike was a critical hit). The spell doesn’t have the manipulate trait when cast this way.",
                 new Trait[1] { Trait.Cleric })
+                .WithActionCost(2)
                 .WithOnCreature(creature =>
                 {
                     QEffect channelSmite = new QEffect("Channel Smite {icon:TwoActions}", "You cast Harm or Heal and deliver it through your weapon.");
@@ -323,12 +324,13 @@ namespace DawnsburryMods.ClericRemastered
 
             var RestorativeStrike = ModManager.RegisterFeatName("Restorative Strike");
             yield return new TrueFeat(RestorativeStrike, 4, "You balance both sides of the scales, restoring yourself while striking a foe.",
-                "Requirements: You have a heal spell you can cast\r\n" +
+                "Requirements: You have a heal spell you can cast\r\n\n" +
                 "Cast a 1-action heal spell to heal yourself, expending the spell normally. It loses the manipulate trait when cast this way. Then make a melee Strike. " +
                 "If you make this Strike with your deity’s favored weapon, you gain a +1 status bonus to the attack roll.\n" +
                 "If the Strike hits, you can target a second willing creature to heal the same amount from the spell. This creature can be outside of the spell’s range, " +
                 "provided it’s adjacent to the enemy you hit. ",
                 new Trait[1] { Trait.Cleric })
+                .WithActionCost(2)
                 .WithOnCreature(creature =>
                 {
                     QEffect restorativeStrike = new QEffect("Restorative Strike {icon:TwoActions}", "You cast Heal and strike. On a hit you heal an ally too.");
