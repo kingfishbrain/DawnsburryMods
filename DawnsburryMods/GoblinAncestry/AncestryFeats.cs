@@ -21,7 +21,8 @@ namespace GoblinAncestry.GoblinAncestry
 
         //Performance skill needed for Goblin Song
         public static Feat Performance = new SkillSelectionFeat(FeatName.CustomFeat, Skill.Performance, Trait.Performance).WithCustomName("Performance");
-        public static Feat ExpertPerformance = new SkillIncreaseFeat(FeatName.CustomFeat, Skill.Performance, Trait.Performance).WithCustomName("Expert in Performance");
+        public static Feat ExpertPerformance = new SkillIncreaseFeat(FeatName.CustomFeat, Skill.Performance, Trait.Performance, Proficiency.Expert).WithCustomName("Expert in Performance");
+        public static Feat MasterPerformance = new SkillIncreaseFeat(FeatName.CustomFeat, Skill.Performance, Trait.Performance, Proficiency.Master).WithCustomName("Master in Performance");
 
         
 
@@ -37,6 +38,7 @@ namespace GoblinAncestry.GoblinAncestry
 
             ModManager.AddFeat(Performance);
             ModManager.AddFeat(ExpertPerformance);
+            ModManager.AddFeat(MasterPerformance);
 
 
             yield return new AncestryFeat("Goblin Weapon Familiarity",
