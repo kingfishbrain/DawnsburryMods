@@ -1,5 +1,5 @@
-﻿using Dawnsbury.Core.CharacterBuilder.AbilityScores;
-using Dawnsbury.Core.CharacterBuilder.Feats;
+﻿using Dawnsbury.Core.CharacterBuilder.Feats;
+using Dawnsbury.Core.CharacterBuilder.FeatsDb;
 using Dawnsbury.Core.Mechanics.Enumerations;
 using Dawnsbury.Modding;
 
@@ -11,30 +11,16 @@ public static class GoblinAncestryLoader
 
 
 
-
     [DawnsburyDaysModMainMethod]
     public static void LoadMod()
     {
-
+        
         Weapons.RegisterWeapons();
-        AddFeats(AncestryFeats.CreateGoblinAncestryFeats(GoblinTrait));
-
-        ModManager.AddFeat(new AncestrySelectionFeat(
-                FeatName.CustomFeat,
-                "Goblins are a short, scrappy, energetic people who have spent millennia maligned and feared.",
-                new List<Trait> { Trait.Humanoid, GoblinTrait },
-                6,
-                5,
-                new List<AbilityBoost>()
-                {
-                    new EnforcedAbilityBoost(Ability.Dexterity),
-                    new EnforcedAbilityBoost(Ability.Charisma),
-                    new FreeAbilityBoost()
-                },
-                Heritages.CreateGoblinHeritages().ToList())
-            .WithAbilityFlaw(Ability.Wisdom)
-            .WithCustomName("Goblin")
-        );
+        AddFeats(AncestryFeats.CreateGoblinAncestryFeats());
+        Feat goblin = (AllFeats.All.Find(feat => feat.FeatName == FeatName.Goblin))!;
+        var tailedGoblin = Heritages.TailedGoblin();
+        ModManager.AddFeat(tailedGoblin);
+        goblin.Subfeats!.Add(tailedGoblin);
     }
 
     private static void AddFeats(IEnumerable<Feat> feats)

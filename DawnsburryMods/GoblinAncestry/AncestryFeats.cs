@@ -43,55 +43,14 @@ namespace GoblinAncestry.GoblinAncestry
 
             yield return new AncestryFeat("Goblin Weapon Familiarity",
                     "Others might look upon them with disdain, but you know that the weapons of your people are as effective as they are sharp. ",
-                    "You gain access to all uncommon weapons with the goblin trait. You have familiarity with weapons with the goblin trait (also applies to dogsclicer) — for the purposes of proficiency, you treat any of these that are martial weapons as simple weapons and any that are advanced weapons as martial weapons.")
+                    "You gain access to all uncommon weapons with the goblin trait. You have familiarity with weapons with the goblin trait — for the purposes of proficiency, you treat any of these that are martial weapons as simple weapons and any that are advanced weapons as martial weapons.")
                 .WithOnSheet(sheet =>
                 {
                     sheet.Proficiencies.AddProficiencyAdjustment(traits => traits.Contains(Trait.Goblin) && traits.Contains(Trait.Martial), Trait.Simple);
                     sheet.Proficiencies.AddProficiencyAdjustment(traits => traits.Contains(Trait.Goblin) && traits.Contains(Trait.Advanced), Trait.Martial);
-               });
+                });
 
 
-            yield return new AncestryFeat("Burn It!",
-                   "Fire fascinates you.",
-                   "Your spells and alchemical items that deal fire damage gain a status bonus to damage equal to half the spell's level" +
-                   "or one-quarter the item's level (minimum 1). " +
-                   "You also gain a +1 status bonus to any persistent fire damage you deal.")
-               .WithOnCreature(goblin =>
-               {
-                   var burnIt = new QEffect("Burn It!", "Adds damage to fire spells")
-                   {
-                       BonusToDamage = (qfSelf, combatAction, defender) =>
-                       {
-                           if (combatAction.HasTrait(Trait.Fire) && combatAction.HasTrait(Trait.Spell))
-                               return new Bonus(Math.Max(combatAction.SpellLevel / 2, 1), BonusType.Status, "Burn It!");
-                           return null;
-
-                       }
-
-
-                   };
-
-
-                   goblin.AddQEffect(burnIt);
-
-               }).WithPermanentQEffect("Increase persistent fire damage", qfBurnIt =>
-               {
-                   qfBurnIt.AddGrantingOfTechnical(cr => cr.EnemyOf(qfBurnIt.Owner), qfBurnItOnAnEnemy =>
-                   {
-                       qfBurnItOnAnEnemy.YouAcquireQEffect = (qfBurnItOnAnEnemySelf, qfIncoming) =>
-                       {
-                           if (qfIncoming.Id == QEffectId.PersistentDamage && qfBurnIt.Owner.Battle.ActiveCreature == qfBurnIt.Owner
-                           && qfIncoming.Key == "PersistentDamage:Fire")
-                           {
-                               return QEffect.PersistentDamage(qfIncoming.Name!.Split(" ")[0] + "+1", DamageKind.Fire);
-                           }
-                           else
-                           {
-                               return qfIncoming;
-                           }
-                       };
-                   });
-               });
 
             yield return new AncestryFeat("Scuttle {icon:Reaction}",
                     "You take advantage of your ally’s movement to adjust your position.",
