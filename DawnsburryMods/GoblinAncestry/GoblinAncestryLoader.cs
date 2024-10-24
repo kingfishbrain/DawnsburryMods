@@ -9,25 +9,12 @@ public static class GoblinAncestryLoader
 {
 
 
-    public static Trait GoblinTrait;
 
 
 
     [DawnsburyDaysModMainMethod]
     public static void LoadMod()
     {
-
-        GoblinTrait = ModManager.RegisterTrait(
-            "Goblin",
-            new TraitProperties("Goblin", true,
-            "A creature with this trait can be one of several kinds of creature, including goblins, hobgoblins, and bugbears. " +
-            "Goblins tend to have darkvision. An ability with this trait can be used or chosen only by goblins. " +
-            "A weapon with this trait is created and used by goblins.")
-            {
-                IsAncestryTrait = true
-            });
-
-
 
         Weapons.RegisterWeapons();
         AddFeats(AncestryFeats.CreateGoblinAncestryFeats(GoblinTrait));

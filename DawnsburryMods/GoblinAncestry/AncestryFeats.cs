@@ -29,7 +29,7 @@ namespace GoblinAncestry.GoblinAncestry
 
         private static SfxName GoblinSongSoundEffect;
 
-        public static IEnumerable<Feat> CreateGoblinAncestryFeats(Trait goblinTrait)
+        public static IEnumerable<Feat> CreateGoblinAncestryFeats()
         {
             GoblinNoteIllustration = new ModdedIllustration(@"GoblinAncestryResources\GoblinNote.png");
 
@@ -44,47 +44,8 @@ namespace GoblinAncestry.GoblinAncestry
                     "You gain access to all uncommon weapons with the goblin trait. You have familiarity with weapons with the goblin trait (also applies to dogsclicer) — for the purposes of proficiency, you treat any of these that are martial weapons as simple weapons and any that are advanced weapons as martial weapons.")
                 .WithOnSheet(sheet =>
                 {
-                    sheet.Proficiencies.AddProficiencyAdjustment(traits => traits.Contains(Trait.Dogslicer), Trait.Simple);
-                    sheet.Proficiencies.AddProficiencyAdjustment(traits => traits.Contains(goblinTrait) && traits.Contains(Trait.Martial), Trait.Simple);
-                    sheet.Proficiencies.AddProficiencyAdjustment(traits => traits.Contains(goblinTrait) && traits.Contains(Trait.Advanced), Trait.Martial);
-                });
-
-            yield return new AncestryFeat("Bouncy Goblin",
-                   "You have a particular elasticity that makes it easy for you to bounce and squish. ",
-                   "You gain the trained proficiency rank in Acrobatics (or another skill of your choice, if you were already trained in Acrobatics). You also gain a +2 circumstance bonus to Acrobatics checks to Tumble Through a foe’s space.")
-               .WithPrerequisite(values => values.AllFeats.Any(feat => feat.Name.Equals("Unbreakable Goblin")), "You must be an Unbreakable Goblin.")
-               .WithOnCreature(creature =>
-               {
-                   creature.AddQEffect(new QEffect("Bouncy Goblin", "You have a 2+ bonus to Tumble Through.")
-                   {
-                       BonusToSkillChecks = (skill, combatAction, target) =>
-                       {
-                           if (combatAction.Name == "Tumble Through")
-                           {
-                               return new Bonus(2, BonusType.Circumstance, "Bouncy Goblin");
-                           }
-                           return null;
-                       }
-                   });
-               })
-               .WithOnSheet(sheet =>
-               {
-
-                   if (sheet.GetProficiency(Trait.Acrobatics) == Proficiency.Untrained)
-                   {
-                       sheet.AddFeat(AllFeats.All.Find(feat => feat.FeatName == FeatName.Acrobatics)!, null);
-                   }
-                   else
-                   {
-                       sheet.AddSelectionOption(
-                           new SingleFeatSelectionOption(
-                               "Bouncy Goblin Skill",
-                               "Bouncy Goblin skill",
-                               -1,
-                               (ft) => ft is SkillSelectionFeat)
-
-                               );
-                   }
+                    sheet.Proficiencies.AddProficiencyAdjustment(traits => traits.Contains(Trait.Goblin) && traits.Contains(Trait.Martial), Trait.Simple);
+                    sheet.Proficiencies.AddProficiencyAdjustment(traits => traits.Contains(Trait.Goblin) && traits.Contains(Trait.Advanced), Trait.Martial);
                });
 
 

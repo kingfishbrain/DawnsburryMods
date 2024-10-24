@@ -1,4 +1,5 @@
 ﻿using Dawnsbury.Core.CharacterBuilder.Feats;
+using Dawnsbury.Core.Mechanics.Enumerations;
 
 namespace GoblinAncestry.GoblinAncestry;
 
@@ -7,7 +8,7 @@ public class AncestryFeat : TrueFeat
     public AncestryFeat(string name, string flavorText, string rulesText)
         : base(FeatName.CustomFeat, 1, flavorText, rulesText, new[]
         {
-            GoblinAncestryLoader.GoblinTrait,
+            Trait.Goblin,
             // The following line is not needed -- because we registered the Kobold trait as an ancestry trait, the Ancestry trait is added automatically.
             // Trait.Ancestry
         })
