@@ -35,11 +35,11 @@ namespace DawnsburryMods
                     {
                         creature.AddQEffect(new QEffect("Scoundrel Racket", "If you Feint while wielding an agile or finesse melee weapon, you can Step immediately after the Feint as a free action.")
                         {
-                            AfterYouTakeActionAgainstTarget = (Func<QEffect, CombatAction, Creature, CheckResult, Task>)((effect, action, target, checkResult) =>
+                            AfterYouTakeActionAgainstTarget = (Func<QEffect, CombatAction, Creature, CheckResult, Task>)(async(effect, action, target, checkResult) =>
                             {
                                 if (action.Name == "Feint")
                                 {
-                                    effect.Owner.StrideAsync("Take a step.", allowStep: true, maximumFiveFeet: true, allowCancel: true);
+                                    await effect.Owner.StrideAsync("Take a step.", allowStep: true, maximumFiveFeet: true, allowCancel: true);
                                 }
                             }
     )
@@ -54,10 +54,10 @@ namespace DawnsburryMods
                 .WithWeaponProperties(new WeaponProperties("1d6", DamageKind.Piercing))
                 .WithDescription("Originally developed for an elaborate dancing performance, it was discovered it made for an effective weapon after an unfortunate accident."));
             ModManager.RegisterNewItemIntoTheShop("Elven Branched Spear", itemName =>
-            new Item(itemName, IllustrationName.Glaive, "Dancer's Spear", 0, 3, Trait.TwoHanded, Trait.DeadlyD8, Trait.Finesse, Trait.Reach, Trait.Weapon, Trait.Martial, Trait.Spear)
+            new Item(itemName, IllustrationName.Glaive, "Elven Branched Spear", 0, 3, Trait.TwoHanded, Trait.DeadlyD8, Trait.Finesse, Trait.Reach, Trait.Weapon, Trait.Martial, Trait.Spear)
                 .WithWeaponProperties(new WeaponProperties("1d6", DamageKind.Piercing))
                 .WithDescription("Originally developed for an elaborate dancing performance, it was discovered it made for an effective weapon after an unfortunate accident."));
-            ModManager.RegisterNewItemIntoTheShop("Dancer's Spear", itemName =>
+            ModManager.RegisterNewItemIntoTheShop("Boarding Pike", itemName =>
                  new Item(itemName, IllustrationName.Longspear, "Boarding Pike", 0, 1, Trait.TwoHanded, Trait.Shove, Trait.Reach, Trait.Weapon, Trait.Martial, Trait.Polearm)
                 .WithWeaponProperties(new WeaponProperties("1d10", DamageKind.Piercing))
                 .WithDescription("Taking the form of a longspear fitted with crossbars or hooks, a boarding pike provides its wielder a sharp implement that's as adept at shoving enemies off a ship's railings as facilitating the boarding of other vessels. "));
@@ -76,22 +76,23 @@ namespace DawnsburryMods
                 {
                     creature.AddQEffect(new QEffect("Distracting Feint", "Your succesful feints inflict a -2 reflex debuff on the enemy")
                     {
-                        AfterYouTakeActionAgainstTarget = (Func<QEffect, CombatAction, Creature, CheckResult, Task>)((effect, action, target, checkResult) =>
+                        AfterYouTakeActionAgainstTarget = (Func<QEffect, CombatAction, Creature, CheckResult, Task>)(async(effect, action, target, checkResult) =>
                         {
                             if (action.Name == "Feint" && checkResult >= CheckResult.Success)
                             {
-                                target.AddQEffect(new QEffect("Distracting Feint", "-2 Circumstance Bonus to Reflext and Perception saves")
+                                target.AddQEffect(new QEffect("Distracting Feint", "-2 Circumstance Bonus to Reflext and Perception saves", ExpirationCondition.ExpiresAtEndOfYourTurn, creature)
                                 {
-                                    ExpiresAt = ExpirationCondition.ExpiresAtEndOfYourTurn,
                                     RoundsLeft = 2,
-                                    BonusToPerception = (Func<QEffect, Bonus>)((effect, bonus) => new Bonus(-2, BonusType.Circumstance, "Distracting Feint")),
-                                    BonusToDefenses = (Func<QEffect, CombatAction, Defense, Bonus>)((effect, action, defense) =>
+                                    BonusToPerception = (Func<QEffect, Bonus>)((bonus) => new Bonus(-2, BonusType.Circumstance, "Distracting Feint")),
+                                    BonusToDefenses = (effect, action, defense) =>
                                     {
-                                        if (defense = Defense.Reflex)
+                                        if (defense == Defense.Reflex)
                                         {
-                                            new Bonus(-2, BonusType.Circumstance, "Distracting Feint");
+                                            return new Bonus(-2, BonusType.Circumstance, "Distracting Feint");
                                         }
-                                    })
+                                        return null;
+
+                                    }
                                 });
                             }
                         }
