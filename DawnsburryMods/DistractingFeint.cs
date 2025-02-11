@@ -76,9 +76,8 @@ namespace DawnsburryMods
                         {
                             if (action.Name == "Feint" && checkResult >= CheckResult.Success)
                             {
-                                target.AddQEffect(new QEffect("Distracting Feint", "-2 Circumstance Bonus to Reflext and Perception saves", ExpirationCondition.ExpiresAtEndOfYourTurn, creature)
+                                target.AddQEffect(new QEffect("Distracting Feint", "-2 Circumstance Bonus to Reflext and Perception saves", ExpirationCondition.Never, creature, IllustrationName.Flatfooted)
                                 {
-                                    RoundsLeft = 2,
                                     BonusToPerception = (Func<QEffect, Bonus>)((bonus) => new Bonus(-2, BonusType.Circumstance, "Distracting Feint")),
                                     BonusToDefenses = (effect, action, defense) =>
                                     {
@@ -89,7 +88,7 @@ namespace DawnsburryMods
                                         return null;
 
                                     }
-                                });
+                                }.WithExpirationAtEndOfSourcesNextTurn(creature, true));
                             }
                         }
                         )
