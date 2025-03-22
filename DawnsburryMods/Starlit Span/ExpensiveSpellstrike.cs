@@ -104,17 +104,11 @@ namespace DawnsburryMods.Starlit_Span
 
                      CombatAction? CreateSpellstrike(CombatAction spell)
                      {
-                         if (spell.SubspellVariants != null || spell.Variants != null) //tried to include variant spells but this doesn't seem to do anything
-                         {
-                             spell.ActionCost = 2;
-                             spell.SpentActions = 2;
-                         }
-
                          if (spell.ActionCost != 1 && spell.ActionCost != 2)
                          {
                              return null;
                          }
-
+                    
                          if (spell.HasTrait(Trait.Attack))
                          {
                              return null;
@@ -145,6 +139,7 @@ namespace DawnsburryMods.Starlit_Span
                          {
                              if (result >= CheckResult.Success)
                              {
+                                 int spellActions = spell.ActionCost;
                                  spell.ActionCost = 0;
                                  var currentTile = a.Occupies;
 
@@ -176,10 +171,10 @@ namespace DawnsburryMods.Starlit_Span
                                          break;
 
                                  }
+                                 spell.ActionCost = spellActions;
 
                              }
                              a.Spellcasting!.UseUpSpellcastingResources(spell);
-
 
                              a.AddQEffect(new QEffect
                              {
