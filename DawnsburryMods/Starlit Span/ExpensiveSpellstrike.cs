@@ -143,7 +143,6 @@ namespace DawnsburryMods.Starlit_Span
                          ((CreatureTarget)spellstrike.Target).WithAdditionalConditionOnTargetCreature((Creature a, Creature d) => a.HasEffect(QEffectId.SpellstrikeDischarged) ? Usability.NotUsable("You must first recharge your Spellstrike by spending an action or casting a focus spell.") : Usability.Usable);
                          spellstrike.StrikeModifiers.OnEachTarget = async delegate (Creature a, Creature d, CheckResult result)
                          {
-                             a.Spellcasting!.UseUpSpellcastingResources(spell);
                              if (result >= CheckResult.Success)
                              {
                                  spell.ActionCost = 0;
@@ -156,25 +155,31 @@ namespace DawnsburryMods.Starlit_Span
                                          spell.Target = spellstrike.Target;
                                          spell.ChosenTargets = spellstrike.ChosenTargets;
                                          await spell.AllExecute();
+                                         a.Spellcasting!.RevertExpendingOfResources(spell);
                                          break;
                                      case CloseAreaTarget target:
                                          a.Occupies = d.Occupies;
                                          await a.Battle.GameLoop.FullCast(spell);
+                                         a.Spellcasting!.RevertExpendingOfResources(spell);
                                          spell.Target = spellstrike.Target;
                                          spell.ChosenTargets = spellstrike.ChosenTargets;
                                          await spell.AllExecute();
+                                         a.Spellcasting!.RevertExpendingOfResources(spell);
                                          a.Occupies = currentTile;
                                          break;
                                      case BurstAreaTarget target:
                                          target.Range = 1;
                                          a.Occupies = d.Occupies;
                                          await a.Battle.GameLoop.FullCast(spell);
+                                         a.Spellcasting!.RevertExpendingOfResources(spell);
                                          a.Occupies = currentTile;
                                          break;
 
                                  }
 
                              }
+                             a.Spellcasting!.UseUpSpellcastingResources(spell);
+
 
                              a.AddQEffect(new QEffect
                              {
