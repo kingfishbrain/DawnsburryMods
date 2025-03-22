@@ -104,6 +104,13 @@ namespace DawnsburryMods.Starlit_Span
 
                      CombatAction? CreateSpellstrike(CombatAction spell)
                      {
+
+                         if (spell.Variants != null)
+                             return null;
+                         if (spell.SubspellVariants != null)
+                             return null;
+
+
                          if (spell.ActionCost != 1 && spell.ActionCost != 2)
                          {
                              return null;
