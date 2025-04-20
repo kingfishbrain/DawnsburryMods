@@ -232,9 +232,9 @@ namespace DawnsburryMods.ClericRemastered
                                                   "",
                                                   Target.RangedFriend(5).WithAdditionalConditionOnTargetCreature((caster, friend) =>
                                                   {
-                                                      if(friend == caster) return Usability.NotUsable("Second heal can't be used on yourself.");
+                                                      if (friend == caster) return Usability.NotUsableOnThisCreature("not-self");
                                                       if (friend.IsAdjacentTo(target) || friend.IsAdjacentTo(caster)) return Usability.Usable;
-                                                      return Usability.NotUsable("Not in range.");
+                                                      return Usability.NotUsableOnThisCreature("not-in-range");
                                                   }))
                                                   .WithActionCost(0);
 
