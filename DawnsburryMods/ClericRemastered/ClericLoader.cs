@@ -25,52 +25,11 @@ namespace DawnsburryMods.ClericRemastered
         [DawnsburyDaysModMainMethod]
         public static void loadMod()
         {
-            AllFeats.All.RemoveAll(feat => feat.FeatName == FeatName.HealingFont);
-            AllFeats.All.RemoveAll(feat => feat.FeatName == FeatName.HarmfulFont);
-            LoadFonts().ForEach(feat => ModManager.AddFeat(feat)); //yooo it works
-
             LoadClassFeats().ForEach(feat => ModManager.AddFeat(feat));
         }
 
-        //not relevant now but perhaps in the future?
-        public static int Fonts(int level) =>
-            level switch
-            {
-                <= 4 => 4,
-                (>= 5) and (<= 14) => 5,
-                >= 15 => 6,
-            };
 
 
-        public static IEnumerable<Feat> LoadFonts()
-        {
-            yield return new Feat(FeatName.HealingFont, "Through your deity's blessing, you gain additional spells that channel the life force called positive energy.", 
-                "You gain 4 additional spell slots each day at your highest rank of cleric spell slots. You can prepare only {i}heal{/i} spells in these slots. "
-                , new List<Trait> { Trait.DivineFont }, null).WithOnSheet(delegate (CalculatedCharacterSheetValues sheet)
-            {
-                sheet.AtEndOfRecalculation = (Action<CalculatedCharacterSheetValues>)Delegate.Combine(sheet.AtEndOfRecalculation, (Action<CalculatedCharacterSheetValues>)delegate (CalculatedCharacterSheetValues values)
-                {
-                    int fonts = Fonts(values.CurrentLevel);
-                    for (int i = 0; i < fonts; i++)
-                    {
-                        values.PreparedSpells[Trait.Cleric].Slots.Add(new EnforcedPreparedSpellSlot(values.MaximumSpellLevel, "Healing font", AllSpells.CreateModernSpellTemplate(SpellId.Heal, Trait.Cleric), "HealingFont:" + i));
-                    }
-                });
-            }).WithIllustration(IllustrationName.Heal);
-            yield return new Feat(FeatName.HarmfulFont, "Through your deity's blessing, you gain additional spells that channel the counterforce to life, the so-called negative energy.",
-                "You gain 4 additional spell slots each day at your highest rank of cleric spell slots. You can prepare only {i}harm{/i} spells in these slots. "
-               , new List<Trait> { Trait.DivineFont }, null).WithOnSheet(delegate (CalculatedCharacterSheetValues sheet)
-            {
-                sheet.AtEndOfRecalculation = (Action<CalculatedCharacterSheetValues>)Delegate.Combine(sheet.AtEndOfRecalculation, (Action<CalculatedCharacterSheetValues>)delegate (CalculatedCharacterSheetValues values)
-                {
-                    int fonts = Fonts(values.CurrentLevel);
-                    for (int i = 0; i < fonts; i++)
-                    {
-                        values.PreparedSpells[Trait.Cleric].Slots.Add(new EnforcedPreparedSpellSlot(values.MaximumSpellLevel, "Harmful font", AllSpells.CreateModernSpellTemplate(SpellId.Harm, Trait.Cleric), "HarmfulFont:" + i));
-                    }
-                });
-            }).WithIllustration(IllustrationName.Harm);
-        }
 
         public static IEnumerable<Feat> LoadClassFeats()
         {
@@ -212,114 +171,9 @@ namespace DawnsburryMods.ClericRemastered
                                 //  GeneralLog.Log("Gets here and shield is: " + wieldsEmblazonedShield.ToString());
                                 if (qAdded.Name == "Raising Symbol" && wieldsEmblazonedShield && !owner.QEffects.Contains(QEffect.RaisingAShield(shieldBlock))) owner.AddQEffect(QEffect.RaisingAShield(shieldBlock));
                             }
-                        });
-                    }
-
-                });
-            var ChannelSmite = ModManager.RegisterFeatName("Channel Smite");
-            yield return new TrueFeat(ChannelSmite, 4, "You siphon the energies of life and death through a melee attack and into your foe.",
-                "Cost: Expend a harm or heal spell\r\n\n" +
-                "Make a melee Strike. On a hit, you cast the 1-action version of the expended spell to damage the target, in addition to the normal damage from your Strike. " +
-                "The target automatically gets a failure on its save (or a critical failure if your Strike was a critical hit). The spell doesn’t have the manipulate trait when cast this way.",
-                new Trait[1] { Trait.Cleric })
-                .WithActionCost(2)
-                .WithOnCreature(creature =>
-                {
-                    QEffect channelSmite = new QEffect("Channel Smite {icon:TwoActions}", "You cast Harm or Heal and deliver it through your weapon.");
-                    channelSmite.ProvideStrikeModifierAsPossibility = delegate (Item weapon)
-                    {
-                        if (!weapon.HasTrait(Trait.Melee))
-                        {
-                            return null;
-                        }
-                        Creature owner = channelSmite.Owner;
-
-                        CombatAction? createChannelSmite(CombatAction spell)
-                        {
-                            if (!(spell.Name == "Harm" || spell.Name == "Heal"))
-                            {
-                                return null;
-                            }
-                            spell.SpentActions = 1;
-                            CombatAction strike = owner.CreateStrike(weapon);
-                            strike.Name = spell.Name;
-                            strike.Illustration = new SideBySideIllustration(strike.Illustration, spell.Illustration);
-                            strike.Traits.AddRange(spell.Traits.Except(new Trait[5]
-                            {
-                                Trait.Ranged,
-                                Trait.Prepared,
-                                Trait.Spontaneous,
-                                Trait.Spell,
-                                Trait.Manipulate
-                            }));
-                            strike.Traits.Add(Trait.Basic);
-                            strike.ActionCost = 2;
-                            // add restrictions like holy castegation and undead and stuff
-                            ((CreatureTarget)strike.Target).WithAdditionalConditionOnTargetCreature((Creature attacker, Creature target) =>
-                            {
-                                bool holyCastigation = attacker?.HasEffect(QEffectId.HolyCastigation) ?? false;
-                                bool isHeal = (spell.Name == "Heal");
-                                if (isHeal && target.IsLivingCreature && (!holyCastigation || !target.HasTrait(Trait.Fiend))) return Usability.NotUsableOnThisCreature("Target would be healed by strike.");
-                                return (!isHeal && target.HasTrait(Trait.Undead)) ? Usability.NotUsableOnThisCreature("Target would be healed by strike.") : Usability.Usable;
-                            });
-                            strike.StrikeModifiers.OnEachTarget = async delegate (Creature striker, Creature target, CheckResult result)
-                            {
-                                striker.Spellcasting!.UseUpSpellcastingResources(spell);
-                                if (result >= CheckResult.Success)
-                                {
-                                    result = (result == CheckResult.Success) ? CheckResult.Failure : CheckResult.CriticalFailure; //harm is a saving throw so an attack success means a failed saving throw
-                                    await spell.EffectOnOneTarget!(spell, striker, target, result);
-                                    
-                                }
-
-                            };
-                            strike.Description = StrikeRules.CreateBasicStrikeDescription(strike.StrikeModifiers, null, "The success effect of " + spell.Name + "(" + spell.SpellLevel + ")" + " is inflicted upon the target.", "Critical spell effect.", null);
-                            return strike;
-                        }
-                        SubmenuPossibility CreateSpellcastingMenu(string caption, Func<CombatAction, CombatAction?> spellTransformation)
-                        {
-                            Func<CombatAction, CombatAction?> spellTransformation2 = spellTransformation;
-                            SubmenuPossibility castASpell = new SubmenuPossibility(new SideBySideIllustration(weapon.Illustration, IllustrationName.CastASpell), caption)
-                            {
-                                Subsections = new List<PossibilitySection>()
-                            };
-                            SpellcastingSource sourceByOrigin = owner.Spellcasting!.GetSourceByOrigin(Trait.Cleric)!;
-                            if ((sourceByOrigin.Kind == SpellcastingKind.Prepared || sourceByOrigin.Kind == SpellcastingKind.Innate) && sourceByOrigin.Spells.Count > 0)
-                            {
-                                for (int i = 1; i <= 10; i++)
-                                {
-                                    int levelJ2 = i;
-                                    AddSpellSubmenu("Level " + i, sourceByOrigin.Spells.Where((CombatAction sp) => sp.SpellLevel == levelJ2));
-                                }
-                            }
-                            return castASpell;
-                            void AddSpellSubmenu(string miniSectionCaption, IEnumerable<CombatAction> spells)
-                            {
-                                PossibilitySection possibilitySection = new PossibilitySection(miniSectionCaption);
-                                foreach (CombatAction spell in spells)
-                                {
-                                    CombatAction? strike = spellTransformation2(spell);
-                                    if (strike != null)
-                                    {
-                                        string name = strike.Name;
-                                        strike.Name = "Channel Smite (" + strike.ToString() + ")";
-                                        possibilitySection.Possibilities.Add(new ActionPossibility(strike, PossibilitySize.Half)
-                                        {
-                                            Caption = name
                                         });
                                     }
-                                }
 
-                                if (possibilitySection.Possibilities.Count > 0)
-                                {
-                                    castASpell.Subsections.Add(possibilitySection);
-                                }
-                            }
-                        }
-                        return CreateSpellcastingMenu("Channel Smite", createChannelSmite);
-
-                    };
-                    creature.AddQEffect(channelSmite);
                 });
 
             var RestorativeStrike = ModManager.RegisterFeatName("Restorative Strike");
