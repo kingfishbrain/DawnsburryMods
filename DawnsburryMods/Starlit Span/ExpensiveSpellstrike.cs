@@ -164,11 +164,13 @@ namespace DawnsburryMods.Starlit_Span
                                          switch (spell.Target)
                                          {
                                              case CreatureTarget target:
+                                             case MultipleCreatureTargetsTarget targets:
                                                  spell.Target = spellstrike.Target;
                                                  spell.ChosenTargets = spellstrike.ChosenTargets;
                                                  await spell.AllExecute();
                                                  a.Spellcasting!.RevertExpendingOfResources(spell);
                                                  break;
+
                                              case CloseAreaTarget target:
                                                  a.Occupies = d.Occupies;
                                                  await a.Battle.GameLoop.FullCast(spell);
