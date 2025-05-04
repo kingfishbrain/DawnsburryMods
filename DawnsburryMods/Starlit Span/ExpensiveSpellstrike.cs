@@ -71,7 +71,7 @@ namespace DawnsburryMods.Starlit_Span
                              {
                                  return null;
                              }
-
+                             //not sure why the de-compiled code is checking for all these negative action costs but i'm not gonna question its wisdom
                              if (spell.ActionCost != 1 && spell.ActionCost != 2 && spell.ActionCost != -3 && spell.ActionCost != -1 && spell.ActionCost != -4 && spell.ActionCost != -5)
                              {
                                  return null;
@@ -86,33 +86,9 @@ namespace DawnsburryMods.Starlit_Span
                                  return null;
                              }
 
-                  //           if (weapon.WeaponProperties!.RangeIncrement > -1)
-                  //              spell.Target = Target.Ranged(weapon.WeaponProperties!.RangeIncrement);  //makes sure spell and strike have the same range and only works within first increment
 
                              Target target = ((spell.Target is DependsOnActionsSpentTarget dependsOnActionsSpentTarget) ? dependsOnActionsSpentTarget.IfTwoActions : spell.Target);
                    
-                             /*
-                             CreatureTarget creatureTarget2;
-                             if (target is CreatureTarget creatureTarget)
-                             {
-                                 creatureTarget2 = creatureTarget;
-                             }
-                             else
-                             {
-                                 if (!(target is MultipleCreatureTargetsTarget multipleCreatureTargetsTarget))
-                                 {
-                                     return null;
-                                 }
-
-                                 if (multipleCreatureTargetsTarget.MinimumTargets > 1)
-                                 {
-                                     return null;
-                                 }
-
-                                 creatureTarget2 = multipleCreatureTargetsTarget.Targets[0];
-                             }
-                             */
-
                              CombatAction spellstrike = qfSpellstrike.Owner.CreateStrike(weapon);
                              spellstrike.Name = spell.Name;
                              spellstrike.Illustration = new SideBySideIllustration(spellstrike.Illustration, spell.Illustration);
@@ -172,6 +148,8 @@ namespace DawnsburryMods.Starlit_Span
                                                  await spell.AllExecute();
                                                  a.Spellcasting!.RevertExpendingOfResources(spell);
                                                  break;
+
+                                            //the general idea for the area spells is that the pc temporarily assumes the position of the spellstriked enemy and casts from there
                                              case CloseAreaTarget target:
                                                  a.Occupies = d.Occupies;
                                                  await a.Battle.GameLoop.FullCast(spell);
