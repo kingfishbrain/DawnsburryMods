@@ -194,15 +194,15 @@ namespace DawnsburryMods.Starlit_Span
 
                                     spell.Target = Target.Ranged(weapon.WeaponProperties!.RangeIncrement);  //makes sure spell and strike have the same range and only works within first increment
 
-                                    Target target2 = ((spell.Target is DependsOnActionsSpentTarget dependsOnActionsSpentTarget) ? dependsOnActionsSpentTarget.IfTwoActions : spell.Target);
+                                    Target target = ((spell.Target is DependsOnActionsSpentTarget dependsOnActionsSpentTarget) ? dependsOnActionsSpentTarget.IfTwoActions : spell.Target);
                                     CreatureTarget creatureTarget2;
-                                    if (target2 is CreatureTarget creatureTarget)
+                                    if (target is CreatureTarget creatureTarget)
                                     {
                                         creatureTarget2 = creatureTarget;
                                     }
                                     else
                                     {
-                                        if (!(target2 is MultipleCreatureTargetsTarget multipleCreatureTargetsTarget))
+                                        if (!(target is MultipleCreatureTargetsTarget multipleCreatureTargetsTarget))
                                         {
                                             return null;
                                         }
