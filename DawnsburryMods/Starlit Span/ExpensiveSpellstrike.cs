@@ -155,9 +155,12 @@ namespace DawnsburryMods.Starlit_Span
 
                                      if (!fizzled)
                                      {
+                                         //temporarily save the spell information
                                          int spellActions = spell.ActionCost;
                                          spell.ActionCost = 0;
                                          var currentTile = a.Occupies;
+                                         Target spellTarget = spell.Target;
+                                         ChosenTargets spellChosen = spell.ChosenTargets;
 
 
                                          switch (spell.Target)
@@ -169,12 +172,11 @@ namespace DawnsburryMods.Starlit_Span
                                                  await spell.AllExecute();
                                                  a.Spellcasting!.RevertExpendingOfResources(spell);
                                                  break;
-
                                              case CloseAreaTarget target:
                                                  a.Occupies = d.Occupies;
                                                  await a.Battle.GameLoop.FullCast(spell);
                                                  a.Spellcasting!.RevertExpendingOfResources(spell);
-                                                 spell.Target = spellstrike.Target;
+                                                 spell.Target = CreatureTarget.Ranged(10); //need this so the spell can hit the creature while the PC is sharing its space
                                                  spell.ChosenTargets = spellstrike.ChosenTargets;
                                                  await spell.AllExecute();
                                                  a.Spellcasting!.RevertExpendingOfResources(spell);
@@ -187,9 +189,12 @@ namespace DawnsburryMods.Starlit_Span
                                                  a.Spellcasting!.RevertExpendingOfResources(spell);
                                                  a.Occupies = currentTile;
                                                  break;
-
                                          }
+                                         //re-assign saved spell information
                                          spell.ActionCost = spellActions;
+                                         spell.Target = spellTarget;
+                                         spell.ChosenTargets = spellChosen;
+
                                      }
                                  }
                                  a.Spellcasting!.UseUpSpellcastingResources(spell);
