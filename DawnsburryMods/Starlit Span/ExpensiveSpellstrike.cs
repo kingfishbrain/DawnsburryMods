@@ -135,7 +135,6 @@ namespace DawnsburryMods.Starlit_Span
                                  Steam.CollectAchievement("MAGUS");
                                  spell.ChosenTargets = ChosenTargets.CreateSingleTarget(d);
                                  spell.SpentActions = 2;
-                                 a.Spellcasting.UseUpSpellcastingResources(spell);
                                  if (result >= CheckResult.Success)
                                  {
                                      bool fizzled = false;
@@ -193,6 +192,7 @@ namespace DawnsburryMods.Starlit_Span
                                          spell.ActionCost = spellActions;
                                      }
                                  }
+                                 a.Spellcasting!.UseUpSpellcastingResources(spell);
 
 
 
