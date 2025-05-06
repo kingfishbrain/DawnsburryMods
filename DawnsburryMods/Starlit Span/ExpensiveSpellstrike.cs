@@ -137,10 +137,24 @@ namespace DawnsburryMods.Starlit_Span
                                          var currentTile = a.Occupies;
                                          Target spellTarget = spell.Target;
                                          ChosenTargets spellChosen = spell.ChosenTargets;
-
+                                         a.Occupies = d.Occupies; //the general idea is that the pc temporarily assumes the position of the spellstriked enemy and casts from there
 
                                          switch (spell.Target)
                                          {
+                                            
+                                             case CloseAreaTarget target:
+                                                 await a.Battle.GameLoop.FullCast(spell);
+                                                 a.Spellcasting!.RevertExpendingOfResources(spell);
+                                                 spell.Target = CreatureTarget.Ranged(10); //need this so the spell can hit the creature while the PC is sharing its space
+                                                 spell.ChosenTargets = spellstrike.ChosenTargets;
+                                                 await spell.AllExecute();
+                                                 a.Spellcasting!.RevertExpendingOfResources(spell);
+                                                 break;
+                                             case BurstAreaTarget target:
+                                                 target.Range = 1;
+                                                 await a.Battle.GameLoop.FullCast(spell);
+                                                 a.Spellcasting!.RevertExpendingOfResources(spell);
+                                                 break;
                                              case CreatureTarget target:
                                              case MultipleCreatureTargetsTarget targets:
                                                  spell.Target = spellstrike.Target;
@@ -148,26 +162,8 @@ namespace DawnsburryMods.Starlit_Span
                                                  await spell.AllExecute();
                                                  a.Spellcasting!.RevertExpendingOfResources(spell);
                                                  break;
-
-                                            //the general idea for the area spells is that the pc temporarily assumes the position of the spellstriked enemy and casts from there
-                                             case CloseAreaTarget target:
-                                                 a.Occupies = d.Occupies;
-                                                 await a.Battle.GameLoop.FullCast(spell);
-                                                 a.Spellcasting!.RevertExpendingOfResources(spell);
-                                                 spell.Target = CreatureTarget.Ranged(10); //need this so the spell can hit the creature while the PC is sharing its space
-                                                 spell.ChosenTargets = spellstrike.ChosenTargets;
-                                                 await spell.AllExecute();
-                                                 a.Spellcasting!.RevertExpendingOfResources(spell);
-                                                 a.Occupies = currentTile;
-                                                 break;
-                                             case BurstAreaTarget target:
-                                                 target.Range = 1;
-                                                 a.Occupies = d.Occupies;
-                                                 await a.Battle.GameLoop.FullCast(spell);
-                                                 a.Spellcasting!.RevertExpendingOfResources(spell);
-                                                 a.Occupies = currentTile;
-                                                 break;
                                          }
+                                         a.Occupies = currentTile; //return caster to original position
                                          //re-assign saved spell information
                                          spell.ActionCost = spellActions;
                                          spell.Target = spellTarget;
