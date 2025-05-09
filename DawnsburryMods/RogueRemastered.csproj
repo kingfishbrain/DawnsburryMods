@@ -1,0 +1,50 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows7.0</TargetFramework>
+    <RootNamespace>DawnsburryMods</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Configurations>Debug;Release;GoblinAncestry</Configurations>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="ClericRemastered\**" />
+    <Compile Remove="GoblinAncestry\**" />
+    <Compile Remove="Starlit Span\**" />
+    <EmbeddedResource Remove="ClericRemastered\**" />
+    <EmbeddedResource Remove="GoblinAncestry\**" />
+    <EmbeddedResource Remove="Starlit Span\**" />
+    <None Remove="ClericRemastered\**" />
+    <None Remove="GoblinAncestry\**" />
+    <None Remove="Starlit Span\**" />
+  </ItemGroup>
+
+ 
+
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+			<_Parameter1>Core.Tests</_Parameter1>
+		</AssemblyAttribute>
+	</ItemGroup>
+	
+
+  <ItemGroup>
+    <Reference Include="Common">
+      <HintPath>..\..\..\SteamLibrary\steamapps\common\Dawnsbury Days\Data\Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Dawnsbury Days">
+      <HintPath>..\..\..\SteamLibrary\steamapps\common\Dawnsbury Days\Data\Dawnsbury Days.dll</HintPath>
+    </Reference>
+    <Reference Include="MonoGame.Framework">
+      <HintPath>..\..\..\SteamLibrary\steamapps\common\Dawnsbury Days\Data\MonoGame.Framework.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="13.0.1" />
+  </ItemGroup>
+
+</Project>
