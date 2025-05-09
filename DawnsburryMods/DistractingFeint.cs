@@ -100,15 +100,14 @@ namespace DawnsburryMods
             Feat scoundrel = (AllFeats.All.Find(feat => feat.FeatName == FeatName.ScoundrelRacket))!;
             scoundrel.RulesText += "\nIf you Feint while wielding an agile or finesse melee weapon, you can Step immediately after the Feint as a free action.\r\n";
 
-            ModManager.RegisterActionOnEachCreature(creature =>
+            scoundrel.WithOnCreature(creature =>
             {
-                if (creature.HasFeat(FeatName.ScoundrelRacket))
-                {
                     creature.AddQEffect(new QEffect("Scoundrel Racket", "If you Feint while wielding an agile or finesse melee weapon, you can Step immediately after the Feint as a free action.")
                     {
                         AfterYouTakeActionAgainstTarget = (Func<QEffect, CombatAction, Creature, CheckResult, Task>)(async (effect, action, target, checkResult) =>
                         {
-                            if (action.Name == "Feint")
+                            if (action.Name == "Feint" &
+                                action.Owner.HeldItems.Exists(item => item.HasTrait(Trait.Agile) | item.HasTrait(Trait.Finesse)))
                             {
                                 await effect.Owner.StrideAsync("Take a step.", allowStep: true, maximumFiveFeet: true, allowCancel: true);
                             }
@@ -116,7 +115,7 @@ namespace DawnsburryMods
 )
                     }
 );
-                }
+                
             }
                             );
         }
