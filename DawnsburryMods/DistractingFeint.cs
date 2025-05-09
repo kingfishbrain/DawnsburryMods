@@ -88,6 +88,10 @@ namespace DawnsburryMods
                 {
                     values.SetProficiency(Trait.Martial, Proficiency.Expert);
                 }));
+                sheet.AddAtLevel(13, (Action<CalculatedCharacterSheetValues>)(values =>
+                {
+                    values.SetProficiency(Trait.Martial, Proficiency.Master);
+                }));
             }));
         }
 
