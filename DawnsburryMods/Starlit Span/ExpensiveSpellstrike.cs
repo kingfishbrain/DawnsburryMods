@@ -157,7 +157,7 @@ namespace DawnsburryMods.Starlit_Span
                                                  break;
                                              case CreatureTarget target:
                                              case MultipleCreatureTargetsTarget targets:
-                                                 spell.Target = spellstrike.Target;
+                                                 spell.Target = CreatureTarget.Ranged(10); //need this so the spell can hit the creature while the PC is sharing its space
                                                  spell.ChosenTargets = spellstrike.ChosenTargets;
                                                  await spell.AllExecute();
                                                  a.Spellcasting!.RevertExpendingOfResources(spell);
