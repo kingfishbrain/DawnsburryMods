@@ -139,6 +139,13 @@ namespace DawnsburryMods.Starlit_Span
                                          ChosenTargets spellChosen = spell.ChosenTargets;
                                          a.Occupies = d.Occupies; //the general idea is that the pc temporarily assumes the position of the spellstriked enemy and casts from there
 
+                                         /*
+                                          * the strike should've already provoked an attack of opportunity if the spell would've since it inherited its traits.
+                                          * now i just need to make sure the spell doesn't provoke any further while the pc is moved away
+                                          */
+                                         bool didProvoke = !spell.Traits.Contains(Trait.DoesNotProvoke);
+                                         spell.Traits.Add(Trait.DoesNotProvoke);
+
                                          switch (spell.Target)
                                          {
                                             
@@ -168,6 +175,7 @@ namespace DawnsburryMods.Starlit_Span
                                          spell.ActionCost = spellActions;
                                          spell.Target = spellTarget;
                                          spell.ChosenTargets = spellChosen;
+                                         if(didProvoke) spell.Traits.Remove(Trait.DoesNotProvoke);
 
                                      }
                                  }
