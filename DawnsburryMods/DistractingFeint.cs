@@ -65,7 +65,7 @@ namespace DawnsburryMods
                         Innate = true,
                         YouDealDamageWithStrike = (Delegates.YouDealDamageWithStrike)((qf, action, diceFormula, defender) =>
                         {
-                            if (!((action.Item!.WeaponProperties!.DamageDieSize <= 6 & action.HasTrait(Trait.Martial)) & defender.IsFlatFootedTo(action.Owner, action)) || defender.IsImmuneTo(Trait.PrecisionDamage))
+                            if (!((action.Item!.WeaponProperties!.DamageDieSize <= 6 & (action.HasTrait(Trait.Martial) | action.HasTrait(Trait.Advanced))) & defender.IsFlatFootedTo(action.Owner, action)) || defender.IsImmuneTo(Trait.PrecisionDamage))
                                 return diceFormula;
                             if (action.Owner.OwningFaction.IsPlayer)
                                 Steam.CollectAchievement("ROGUE");
