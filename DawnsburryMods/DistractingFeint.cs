@@ -67,8 +67,10 @@ namespace DawnsburryMods
                         {
                             if (action.Item!.WeaponProperties!.DamageDieSize <= 6 
                                &  (action.HasTrait(Trait.Martial) | action.HasTrait(Trait.Advanced)) 
+                               & !(action.HasTrait(Trait.Agile) | action.HasTrait(Trait.Finesse))
                                & defender.IsFlatFootedTo(action.Owner, action) 
                                & !defender.IsImmuneTo(Trait.PrecisionDamage))
+                               
                             {
                                 if (action.Owner.OwningFaction.IsPlayer) Steam.CollectAchievement("ROGUE");
                                 action.UsedSneakAttack = true;
