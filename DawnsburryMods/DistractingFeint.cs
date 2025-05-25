@@ -66,7 +66,7 @@ namespace DawnsburryMods
                         YouDealDamageWithStrike = (Delegates.YouDealDamageWithStrike)((qf, action, diceFormula, defender) =>
                         {
                             if (action.Item!.WeaponProperties!.DamageDieSize <= 6 
-                               & (action.HasTrait(Trait.Melee)
+                               & action.HasTrait(Trait.Melee)
                                &  (action.HasTrait(Trait.Martial) | action.HasTrait(Trait.Advanced)) 
                                & !(action.HasTrait(Trait.Agile) | action.HasTrait(Trait.Finesse))
                                & defender.IsFlatFootedTo(action.Owner, action) 
