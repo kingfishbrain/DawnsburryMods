@@ -162,13 +162,8 @@ namespace DawnsburryMods
             >= 17 => "4d6"
         };
 
-        private static void addRemasteredGangUp()
+        public static void addRemasteredGangUp()
         {
-            if (AllFeats.GetFeatByFeatName(FeatName.GangUp) is TrueFeat gangUpFeat)
-            {
-                gangUpFeat.RulesText = "Enemies are off-guard to your melee attacks due to flanking as long as they are within reach of both you and one of your allies, even if you and your ally aren't on opposite sides of the enemy. This benefits your allies as well as you, but only if they're flanking with you, not each other.";
-            }
-
             ModManager.RegisterActionOnEachCreature(cr =>
             {
                 if (!cr.HasFeat(FeatName.GangUp)) return;
@@ -176,13 +171,12 @@ namespace DawnsburryMods
                 {
                     StateCheck = effect =>
                     {
-                        foreach (Creature friend in effect.Owner.Battle.AllCreatures.Where(friend => friend.FriendOfAndNotSelf(effect.Owner) && FlankingBuddy(effect.Owner, friend)))
+                        foreach (Creature enemy in effect.Owner.Battle.AllCreatures)
                         {
-                            foreach (Creature enemy in effect.Owner.Battle.AllCreatures.Where(enemy => enemy.EnemyOf(effect.Owner) && FlankingRules.IsFlanking(effect.Owner, enemy)))
+                            if (FlankingRules.IsFlanking(effect.Owner, enemy) &&
+                                (effect.Owner.IsAdjacentTo(enemy) || effect.Owner.WieldsItem(Trait.Reach)))
                             {
-                                QEffect flank = QEffect.FlankedBy(friend);
-                                //dummy out the id to prevent it being removed when flanking is recalculated
-                                flank.Id = Flankee;
+                                QEffect flank = FlankedBy(effect.Owner);
                                 enemy.AddQEffect(flank);
                             }
                         }
@@ -190,42 +184,15 @@ namespace DawnsburryMods
                 };
                 cr.AddQEffect(tech);
             });
-
         }
 
-        //determines if an ally is flanking
-        public static bool FlankingBuddy(Creature flanker, Creature buddy)
+        //new flanked by QEffect that applies to allies of the flanker. This removes the need to foreach twice and to dummy the QF Id.
+        public static QEffect FlankedBy(Creature flanker)
         {
-            foreach (Creature flankee in flanker.Battle.AllCreatures.Where(cr => cr.EnemyOf(flanker)))
+            return new QEffect("Flanked", "[this condition has no description]", ExpirationCondition.Ephemeral, flanker)
             {
-                if (!FlankingRules.IsFlanking(flanker, flankee)) return false;
-                int num1 = flankee.Occupies.X - flanker.Occupies.X;
-                int num2 = flankee.Occupies.Y - flanker.Occupies.Y;
-                int num3 = Math.Abs(num1);
-                int num4 = Math.Abs(num2);
-                if (num3 > 2 || num4 > 2)
-                    return false;
-                for (int index1 = -2; index1 <= 2; ++index1)
-                {
-                    for (int index2 = -2; index2 <= 2; ++index2)
-                    {
-                        if (!FlanksWith(flanker, Math.Abs(index1) <= 1 && Math.Abs(index2) <= 1,
-                                flankee.Occupies.X + index1, flankee.Occupies.Y + index2)) continue;
-                        Creature? primaryOccupant = flanker.Battle.Map.GetTile(flankee.Occupies.X + index1, flankee.Occupies.Y + index2)?.PrimaryOccupant;
-                        if (primaryOccupant == null) continue;
-                        if (!flanker.IsAdjacentTo(flankee) && !flanker.WieldsItem(Trait.Reach)) continue;
-                        if (primaryOccupant == buddy)
-                            return true;
-                    }
-                }
-            }
-            return false;
-        }
-        //public version of the private FlanksWith bool from FlankingRules
-        public static bool FlanksWith(Creature flanker, bool adjacent, int otherX, int otherY)
-        {
-            Creature? primaryOccupant = flanker.Battle.Map.GetTile(otherX, otherY)?.PrimaryOccupant;
-            return primaryOccupant != null && primaryOccupant.FriendOfAndNotSelf(flanker) && (adjacent || primaryOccupant.WieldsItem(Trait.Reach) || primaryOccupant.HasEffect(QEffectId.WeaponInfusion) && (primaryOccupant.HasFreeHand || primaryOccupant.HasEffect(QEffectId.SubtleShaping))) && primaryOccupant.Actions.CanTakeActions() && FlankingRules.SimplifiedCanAttack(primaryOccupant);
+                IsFlatFootedTo = (qEffect, attacker, combatAction) => attacker == null || attacker.EnemyOf(flanker) || attacker == flanker || combatAction == null || !combatAction.HasTrait(Trait.Melee) && !combatAction.HasTrait(Trait.VersatileMelee) || qEffect.Owner.HasEffect(QEffectId.DenyAdvantage) && attacker.Level <= qEffect.Owner.Level || qEffect.Owner.HasEffect(QEffectId.AllAroundVision) ? null : "flanking"
+            };
         }
 
 
