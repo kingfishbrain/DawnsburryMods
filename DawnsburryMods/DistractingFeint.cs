@@ -164,21 +164,17 @@ namespace DawnsburryMods
 
         public static void addRemasteredGangUp()
         {
-            ModManager.RegisterActionOnEachCreature(cr =>
+            AllFeats.GetFeatByFeatName(FeatName.GangUp).WithOnCreature(cr =>
             {
-                if (!cr.HasFeat(FeatName.GangUp)) return;
                 QEffect tech = new()
                 {
                     StateCheck = effect =>
                     {
-                        foreach (Creature enemy in effect.Owner.Battle.AllCreatures)
+                        Creature self = effect.Owner;
+                        foreach (Creature enemy in self.Battle.AllCreatures.Where(enemy => enemy.DistanceToWith10FeetException(self) <= self.Space.ActualReach))
                         {
-                            if (FlankingRules.IsFlanking(effect.Owner, enemy) &&
-                                (effect.Owner.IsAdjacentTo(enemy) || effect.Owner.WieldsItem(Trait.Reach)))
-                            {
-                                QEffect flank = FlankedBy(effect.Owner);
-                                enemy.AddQEffect(flank);
-                            }
+                            if (FlankingRules.SimplifiedCanAttack(self))
+                                enemy.AddQEffect(FlankedBy(effect.Owner));
                         }
                     }
                 };
